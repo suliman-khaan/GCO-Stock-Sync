@@ -1,0 +1,19 @@
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.claude/
+
+# Temporary / Scratch
+*.log
+scratch/
+temp/
+
+# Production Release Archives
+release/gco-stock-sync-*.zip
