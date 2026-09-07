@@ -78,9 +78,25 @@ class GCO_Stock_Sync_Highland_Outdoors extends GCO_Stock_Sync_Abstract_Supplier 
 	 * {@inheritDoc}
 	 */
 	public function is_configured() {
-		$url = $this->get_setting( 'feed_url', '' );
+		return $this->is_https_url( $this->get_setting( 'feed_url', '' ) );
+	}
 
-		return ! empty( $url ) && false !== filter_var( $url, FILTER_VALIDATE_URL );
+	/**
+	 * Whether a URL is well-formed and uses the https scheme.
+	 *
+	 * Feed URLs are admin-configured; restricting to https guards against a
+	 * misconfigured or malicious setting pointing wp_remote_get() at an
+	 * internal http:// address (SSRF).
+	 *
+	 * @param string $url URL to check.
+	 * @return bool
+	 */
+	private function is_https_url( $url ) {
+		if ( empty( $url ) || false === filter_var( $url, FILTER_VALIDATE_URL ) ) {
+			return false;
+		}
+
+		return 'https' === wp_parse_url( $url, PHP_URL_SCHEME );
 	}
 
 	/**
@@ -88,6 +104,10 @@ class GCO_Stock_Sync_Highland_Outdoors extends GCO_Stock_Sync_Abstract_Supplier 
 	 */
 	public function fetch() {
 		$url = $this->get_setting( 'feed_url', self::DEFAULT_FEED_URL );
+
+		if ( ! $this->is_https_url( $url ) ) {
+			return GCO_Stock_Sync_Fetch_Result::failure( 'fetch_failed', __( 'Feed URL must be a valid https:// address.', 'gco-stock-sync' ) );
+		}
 
 		$response = wp_remote_get(
 			$url,
@@ -148,9 +168,8 @@ class GCO_Stock_Sync_Highland_Outdoors extends GCO_Stock_Sync_Abstract_Supplier 
 	private function parse_rows( $body ) {
 		$previous_setting = libxml_use_internal_errors( true );
 
-		$dom     = new DOMDocument();
-		$loaded  = $dom->loadHTML( '<?xml encoding="UTF-8">' . $body );
-		$errors  = libxml_get_errors();
+		$dom    = new DOMDocument();
+		$loaded = $dom->loadHTML( '<?xml encoding="UTF-8">' . $body );
 		libxml_clear_errors();
 		libxml_use_internal_errors( $previous_setting );
 

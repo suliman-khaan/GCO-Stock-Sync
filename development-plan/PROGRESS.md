@@ -13,14 +13,14 @@ is worse than no status at all.
 ## Current Status
 
 **Active phase:** Phase 3 — Supplier Abstraction + Highland Outdoors Connector
-**Phase state:** Code + tests written, **all 14 tests passing**. Quality-gate reviews (`wp-plugin-review` / `wp-sec-review`) not yet run — that's the one remaining item before sign-off.
+**Phase state:** ✅ **Complete.** Code, tests, and security review all done. Ready to start Phase 4.
 
 | Phase | Status |
 |-------|--------|
 | 1 — Feed Reconnaissance | ✅ Done — `research/FEED-NOTES.md` complete, fixtures created |
 | 2 — Plugin Skeleton & Lifecycle | ✅ Done — passes `test-lifecycle.php` (17/17) |
-| 3 — Supplier Connector | 🔶 Code done, tests passing (14/14) — quality gate reviews still pending |
-| 4 — Sync Engine | ⬜ Not started |
+| 3 — Supplier Connector | ✅ Done — 15 tests passing, security-reviewed |
+| 4 — Sync Engine | ⬜ Not started — **start here** |
 | 5 — Admin UI | ⬜ Not started |
 | 6 — Hardening & Release | ⬜ Not started |
 | 7 — Deployment & Handover | ⬜ Not started |
@@ -29,32 +29,62 @@ is worse than no status at all.
 
 ## Immediate Next Step (start here)
 
-Full suite confirmed green on 2026-09-07:
+Phase 3 is done. **Start Phase 4** — read
+`development-plan/phase-4-sync-engine/plan.md` and
+`phase-4-sync-engine/test-cases.md`, then re-read the Safety Principle in
+`master-plan.md` before writing any code that touches WooCommerce stock
+status. Phase 4 is flagged **CRITICAL** — it's the code that actually
+changes stock, and the #1 rule is "a failed supplier connection must never
+mark products out of stock." `GCO_Stock_Sync_Fetch_Result::ok === false`
+from Phase 3's connector must translate to "skip, don't touch," never to
+"treat as zero stock."
+
+Full test suite (32 tests) confirmed green:
 
 ```
 /c/wamp64/bin/php/php8.2.29/php.exe tests/run-tests.php
-→ Summary: 31 tests, 31 passed, 0 failed
+→ Summary: 32 tests, 32 passed, 0 failed
 ```
 
-(17 lifecycle tests from Phase 2 + 14 supplier tests from Phase 3. Note: the
-plan doc lists 16 Phase 3 test IDs (P3-TC01–16), but TC09/TC10/TC11 — the qty
-normalisation cases for commas/negative/empty — were implemented as one
-combined test method (`test_qty_normalisation_rules`) rather than three
-separate ones. All three assertions are present; it's just consolidated.)
+17 lifecycle tests (Phase 2) + 15 supplier tests (Phase 3: the 16 planned
+P3-TC IDs, with TC09/10/11 qty-normalisation cases consolidated into one
+test method, plus one extra test added during security review for the
+https-only guard below).
 
-**Before starting Phase 4**, run the two quality-gate commands specified in
-`phase-3-supplier-connector/plan.md` (not yet run this session):
+### Quality gate — how it actually got done
 
-```
-/wordpress-skills:wp-plugin-review includes/suppliers
-/wordpress-skills:wp-sec-review includes/suppliers
-```
+The plan calls for `/wordpress-skills:wp-plugin-review` and
+`/wordpress-skills:wp-sec-review`, but neither skill was installed in the
+session that built Phase 3. `/security-review` was tried as a substitute but
+requires a git repo with a diff to review, and this project had no git repo
+at all at that point. **A local git repo was initialized in this plugin
+folder** (`git init`, initial commit `66e07c7`) specifically to unblock this
+kind of tooling going forward — if you're in a session where
+`wp-plugin-review`/`wp-sec-review`/`/security-review` ARE available, use
+them for future phases instead of a manual read-through.
 
-Once those pass (or any findings are fixed), mark Phase 3 ✅ in the table
-above and move to `phase-4-sync-engine/plan.md`. Phase 4 is flagged
-**CRITICAL** in the master plan — it's the code that actually changes
-WooCommerce stock status, so re-read the Safety Principle in
-`master-plan.md` before writing it.
+For Phase 3, review was done manually (reading `includes/suppliers/*.php`
+line by line for WP coding standards + security). Findings and resolutions:
+
+1. **Dead code** — unused `$errors` variable in `parse_rows()`. Fixed (removed).
+2. **Secret in source** — `DEFAULT_FEED_URL` embeds the real client email +
+   live NetSuite auth hash as a class constant, now committed to git.
+   **Decision (confirmed with client-side user): keep as-is.** This is a
+   single-tenant plugin for one site; the plan explicitly calls for shipping
+   a default URL (task 3.5.1). **Hard constraint: this repo must never be
+   pushed to a public or shared remote** while that constant holds a live
+   credential. If it ever needs to be shared, rotate the hash first (email
+   johnb@highlandoutdoors.co.uk) or move it out of source into a
+   settings-only value.
+3. **SSRF hardening** — `feed_url` will be admin-editable once Phase 5 ships
+   the settings page, and was passed to `wp_remote_get()` with no scheme
+   check. **Fixed:** added `is_https_url()` in
+   `class-highland-outdoors.php`, used by both `is_configured()` and as a
+   defensive check at the top of `fetch()`. Non-https URLs now fail fast
+   with `error_code = 'fetch_failed'` before any HTTP call is made. Covered
+   by `test_non_https_feed_url_rejected`. **Carry this rule into Phase 5:**
+   the settings-page save handler should also reject non-https URLs at
+   input time, not just rely on the connector catching it at fetch time.
 
 ---
 
@@ -126,8 +156,10 @@ Per `development-plan/phase-3-supplier-connector/plan.md`:
 Plus: all 16 tests in `tests/integration/test-supplier-highland.php` passing
 via `tests/run-tests.php` (or the real WP PHPUnit suite if `WP_TESTS_DIR` is set).
 
-Tests: ✅ done (31/31 passing, see "Immediate Next Step").
-Skill reviews: ⬜ **Not yet run** — do this before moving to Phase 4.
+Tests: ✅ done (32/32 passing, see "Immediate Next Step").
+Skill reviews: ✅ done manually (`wp-plugin-review`/`wp-sec-review` skills
+unavailable this session; see "Immediate Next Step" for what was done instead
+and the findings that came out of it).
 
 ---
 
@@ -154,6 +186,11 @@ Skill reviews: ⬜ **Not yet run** — do this before moving to Phase 4.
 
 - **2026-09-07** — Phase 1 & 2 completed (prior session). Phase 3 code written
   (supplier interface, fetch result, abstract supplier, Highland Outdoors
-  connector, 14 integration tests). Full suite run against local WP:
-  **31/31 passing**. This file created. Remaining before Phase 3 sign-off:
-  `wp-plugin-review` and `wp-sec-review` on `includes/suppliers`.
+  connector, integration tests). Full suite run against local WP: 31/31
+  passing. Manual security/coding-standards review done (automated
+  `wp-plugin-review`/`wp-sec-review` skills unavailable); git repo
+  initialized in the plugin folder to unblock this tooling going forward.
+  Findings: removed dead code, added https-only guard on the feed URL
+  (SSRF hardening) with a new test, decided to keep the hardcoded default
+  feed URL/credential as-is per single-tenant scope (repo must stay
+  private). Final suite: **32/32 passing**. Phase 3 marked complete.

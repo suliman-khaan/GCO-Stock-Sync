@@ -339,6 +339,33 @@ class Test_Supplier_Highland extends GCO_Supplier_Base_TestCase {
 	}
 
 	/**
+	 * SSRF hardening: http:// (non-https) feed URLs are rejected.
+	 */
+	public function test_non_https_feed_url_rejected() {
+		update_option(
+			'gco_stock_sync_supplier_highland_outdoors',
+			array( 'feed_url' => 'http://169.254.169.254/latest/meta-data/', 'min_rows' => 10 )
+		);
+
+		$called = false;
+		$capture = function () use ( &$called ) {
+			$called = true;
+			return array( 'response' => array( 'code' => 200 ), 'body' => '' );
+		};
+		add_filter( 'pre_http_request', $capture, 10, 3 );
+
+		$supplier = new GCO_Stock_Sync_Highland_Outdoors();
+		$result   = $supplier->fetch();
+
+		remove_filter( 'pre_http_request', $capture, 10 );
+		delete_option( 'gco_stock_sync_supplier_highland_outdoors' );
+
+		$this->assertFalse( $called, 'wp_remote_get() must never be called for a non-https feed URL' );
+		$this->assertFalse( $result->ok );
+		$this->assertEquals( 'fetch_failed', $result->error_code );
+	}
+
+	/**
 	 * P3-TC14: Below minimum rows triggers sanity guard.
 	 */
 	public function test_below_minimum_rows_triggers_guard() {
