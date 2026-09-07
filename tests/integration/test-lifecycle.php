@@ -181,6 +181,7 @@ class Test_Lifecycle extends GCO_Lifecycle_Base_TestCase {
 	 * P2-TC06: Default options set on activation
 	 */
 	public function test_default_options_set_on_activation() {
+		delete_option( 'gco_stock_sync_settings' );
 		GCO_Stock_Sync_Activator::activate();
 		$settings = get_option( 'gco_stock_sync_settings' );
 

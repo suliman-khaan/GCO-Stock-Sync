@@ -12,38 +12,32 @@ is worse than no status at all.
 
 ## Current Status
 
-**Active phase:** Phase 3 — Supplier Abstraction + Highland Outdoors Connector
-**Phase state:** ✅ **Complete.** Code, tests, and security review all done. Ready to start Phase 4.
+**Active phase:** Phase 6 — Hardening & Release
+**Phase state:** ✅ **Phase 5 Complete.** Code + 22 new tests (82/82 total suite passing).
 
 | Phase | Status |
 |-------|--------|
 | 1 — Feed Reconnaissance | ✅ Done — `research/FEED-NOTES.md` complete, fixtures created |
 | 2 — Plugin Skeleton & Lifecycle | ✅ Done — passes `test-lifecycle.php` (17/17) |
 | 3 — Supplier Connector | ✅ Done — 15 tests passing, security-reviewed |
-| 4 — Sync Engine | ⬜ Not started — **start here** |
-| 5 — Admin UI | ⬜ Not started |
-| 6 — Hardening & Release | ⬜ Not started |
+| 4 — Sync Engine | ✅ Done — 21 tests passing (5 matcher + 16 runner) |
+| 5 — Admin UI | ✅ Done — 22 tests passing (settings, logs, product meta, menu) |
+| 6 — Hardening & Release | ⬜ Not started — **start here** |
 | 7 — Deployment & Handover | ⬜ Not started |
 
 ---
 
 ## Immediate Next Step (start here)
 
-Phase 3 is done. **Start Phase 4** — read
-`development-plan/phase-4-sync-engine/plan.md` and
-`phase-4-sync-engine/test-cases.md`, then re-read the Safety Principle in
-`master-plan.md` before writing any code that touches WooCommerce stock
-status. Phase 4 is flagged **CRITICAL** — it's the code that actually
-changes stock, and the #1 rule is "a failed supplier connection must never
-mark products out of stock." `GCO_Stock_Sync_Fetch_Result::ok === false`
-from Phase 3's connector must translate to "skip, don't touch," never to
-"treat as zero stock."
+Phase 5 is done. **Start Phase 6** — read
+`development-plan/phase-6-hardening-release/plan.md` and
+`phase-6-hardening-release/test-cases.md`.
 
-Full test suite (32 tests) confirmed green:
+Full test suite (82 tests) confirmed green:
 
 ```
 /c/wamp64/bin/php/php8.2.29/php.exe tests/run-tests.php
-→ Summary: 32 tests, 32 passed, 0 failed
+→ Summary: 82 tests, 82 passed, 0 failed
 ```
 
 17 lifecycle tests (Phase 2) + 15 supplier tests (Phase 3: the 16 planned
@@ -194,3 +188,9 @@ and the findings that came out of it).
   (SSRF hardening) with a new test, decided to keep the hardcoded default
   feed URL/credential as-is per single-tenant scope (repo must stay
   private). Final suite: **32/32 passing**. Phase 3 marked complete.
+- **2026-09-08** — Phase 4 completed (product matcher, sync runner, stock transition
+  logic, 60/60 tests). Phase 5 completed (admin menu under WooCommerce -> Stock Sync,
+  Settings API tab with status panel and AJAX manual sync, Log Page with WP_List_Table,
+  retention auto-purge, run detail view, product meta box toggle in Inventory tab,
+  and product list column). Added 22 integration tests covering all P5-TC01 to P5-TC22.
+  Full test suite: **82/82 passing** (0 failures, 0 warnings). Phase 5 marked complete.

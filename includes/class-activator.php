@@ -63,6 +63,10 @@ class GCO_Stock_Sync_Activator {
 		if ( ! wp_next_scheduled( 'gco_stock_sync_cron' ) ) {
 			wp_schedule_event( time(), 'gco_stock_sync_interval', 'gco_stock_sync_cron' );
 		}
+
+		if ( ! wp_next_scheduled( 'gco_stock_sync_log_purge' ) ) {
+			wp_schedule_event( time(), 'daily', 'gco_stock_sync_log_purge' );
+		}
 	}
 
 	/**

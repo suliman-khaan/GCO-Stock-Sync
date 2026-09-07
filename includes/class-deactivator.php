@@ -37,5 +37,6 @@ class GCO_Stock_Sync_Deactivator {
 		// Belt-and-suspenders: clear all events with this hook in case
 		// multiple got scheduled due to a bug or race condition.
 		wp_clear_scheduled_hook( 'gco_stock_sync_cron' );
+		wp_clear_scheduled_hook( 'gco_stock_sync_log_purge' );
 	}
 }

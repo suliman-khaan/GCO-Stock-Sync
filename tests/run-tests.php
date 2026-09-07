@@ -14,10 +14,20 @@ echo "========================================================\n\n";
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/integration/test-lifecycle.php';
 require_once __DIR__ . '/integration/test-supplier-highland.php';
+require_once __DIR__ . '/integration/test-product-matcher.php';
+require_once __DIR__ . '/integration/test-sync-runner.php';
+require_once __DIR__ . '/integration/test-admin-settings.php';
+require_once __DIR__ . '/integration/test-admin-log.php';
+require_once __DIR__ . '/integration/test-admin-product-meta.php';
 
 $test_classes = array(
 	'Test_Lifecycle',
 	'Test_Supplier_Highland',
+	'Test_Product_Matcher',
+	'Test_Sync_Runner',
+	'Test_Admin_Settings',
+	'Test_Admin_Log',
+	'Test_Admin_Product_Meta',
 );
 
 $total_passed = 0;
@@ -48,10 +58,14 @@ foreach ( $test_classes as $class_name ) {
 				$test_instance->setUp();
 			}
 
-			$test_instance->$method_name();
-
-			if ( method_exists( $test_instance, 'tearDown' ) ) {
-				$test_instance->tearDown();
+			try {
+				$test_instance->$method_name();
+			} finally {
+				// Always run tearDown, even on failure — test data (e.g. WooCommerce
+				// test products) must never be left behind on a live install.
+				if ( method_exists( $test_instance, 'tearDown' ) ) {
+					$test_instance->tearDown();
+				}
 			}
 
 			$duration = round( ( microtime( true ) - $start ) * 1000, 2 );

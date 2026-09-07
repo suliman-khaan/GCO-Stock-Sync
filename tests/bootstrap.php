@@ -45,5 +45,8 @@ if ( file_exists( $_tests_dir . '/includes/functions.php' ) ) {
 	require_once dirname( dirname( __FILE__ ) ) . '/includes/suppliers/class-fetch-result.php';
 	require_once dirname( dirname( __FILE__ ) ) . '/includes/suppliers/abstract-supplier.php';
 	require_once dirname( dirname( __FILE__ ) ) . '/includes/suppliers/class-highland-outdoors.php';
+	require_once dirname( dirname( __FILE__ ) ) . '/includes/sync/class-sync-result.php';
+	require_once dirname( dirname( __FILE__ ) ) . '/includes/sync/class-product-matcher.php';
+	require_once dirname( dirname( __FILE__ ) ) . '/includes/sync/class-sync-runner.php';
 	require_once dirname( dirname( __FILE__ ) ) . '/includes/class-plugin.php';
 }
