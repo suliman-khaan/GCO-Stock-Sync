@@ -1,0 +1,2 @@
+# Preserve branch-specific .gitignore during merges
+.gitignore merge=ours
