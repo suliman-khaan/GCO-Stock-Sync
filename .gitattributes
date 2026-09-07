@@ -1,0 +1,9 @@
+# Prevent merge from bringing dev assets into main
+tests/** merge=ours
+development-plan/** merge=ours
+research/** merge=ours
+bin/** merge=ours
+docs/** merge=ours
+release/** merge=ours
+*.md merge=ours
+.gitignore merge=ours

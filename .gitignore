@@ -1,0 +1,22 @@
+# OS & Editor Files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+.claude/
+
+# Temporary / Scratch
+*.log
+scratch/
+temp/
+
+# Development & Testing Assets (Tracked on 'development' branch only)
+/tests/
+/development-plan/
+/research/
+/bin/
+/docs/
+/release/
+*.md
+!readme.txt
