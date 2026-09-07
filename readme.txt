@@ -20,9 +20,13 @@ Pulls live stock data from supplier feeds and updates WooCommerce product stock 
 = Features =
 
 * Automatic stock status sync on a configurable schedule (30/60/120 minutes)
-* Manual "sync now" from the admin panel
-* Per-product enable/disable toggle
-* Detailed sync log with per-product outcomes
+* Dual scheduling modes: Built-in WP-Cron or Server System Cron / WP-CLI
+* In-admin Cron Pattern Reference & Server Setup Guide
+* Interactive "Test Connection" button to verify feeds instantly without writing data
+* Automated site administrator email alerts upon repeated consecutive feed failures
+* Manual "Run Sync Now" from the admin panel with live feedback
+* Per-product enable/disable toggle and product list column
+* Detailed sync log with per-product outcomes and 30-day auto-pruning
 * Safe by design: a failed feed connection **never** marks products out of stock
 * Extensible supplier architecture — add new suppliers without modifying core code
 

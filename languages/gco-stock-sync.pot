@@ -1,0 +1,688 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: GCO Supplier Stock Sync 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-07 20:46+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: GCO POT Generator 1.0.0\n"
+"X-Domain: gco-stock-sync\n"
+
+#: admin/class-admin.php:65 admin/class-admin.php:66 admin/class-product-meta-box.php:200
+msgid "Stock Sync"
+msgstr ""
+
+#: admin/class-admin.php:109
+msgid "Sync in progress... Please wait."
+msgstr ""
+
+#: admin/class-admin.php:110
+msgid "Testing connection..."
+msgstr ""
+
+#: admin/class-admin.php:111
+msgid "Copied to clipboard!"
+msgstr ""
+
+#: admin/class-admin.php:112
+msgid "Copy failed."
+msgstr ""
+
+#: admin/class-admin.php:123
+msgid "Permission denied. You must be able to manage WooCommerce to access this page."
+msgstr ""
+
+#: admin/class-admin.php:130 gco-stock-sync.php:94 includes/class-plugin.php:279
+msgid "GCO Supplier Stock Sync"
+msgstr ""
+
+#: admin/class-admin.php:135
+msgid "Settings"
+msgstr ""
+
+#: admin/class-admin.php:138
+msgid "Sync History & Logs"
+msgstr ""
+
+#: admin/class-log-list-table.php:48
+msgid "Started At"
+msgstr ""
+
+#: admin/class-log-list-table.php:49
+msgid "Supplier"
+msgstr ""
+
+#: admin/class-log-list-table.php:50
+msgid "Status"
+msgstr ""
+
+#: admin/class-log-list-table.php:51
+msgid "Rows Fetched"
+msgstr ""
+
+#: admin/class-log-list-table.php:52
+msgid "Products Updated"
+msgstr ""
+
+#: admin/class-log-list-table.php:53
+msgid "Message"
+msgstr ""
+
+#: admin/class-log-list-table.php:196
+msgid "View Item Details"
+msgstr ""
+
+#: admin/class-log-list-table.php:226
+msgid "All Statuses"
+msgstr ""
+
+#: admin/class-log-list-table.php:233
+msgid "Filter"
+msgstr ""
+
+#: admin/class-log-list-table.php:242
+msgid "No sync runs recorded yet."
+msgstr ""
+
+#: admin/class-log-page.php:39 admin/class-settings-page.php:613 admin/class-settings-page.php:665
+msgid "Permission denied. You must be able to manage WooCommerce."
+msgstr ""
+
+#: admin/class-log-page.php:137
+msgid "Sync logs cleared successfully."
+msgstr ""
+
+#: admin/class-log-page.php:143
+msgid "Are you sure you want to clear all sync run records and items?"
+msgstr ""
+
+#: admin/class-log-page.php:148
+msgid "Clear All Logs"
+msgstr ""
+
+#: admin/class-log-page.php:178
+msgid "Sync run not found."
+msgstr ""
+
+#: admin/class-log-page.php:179
+msgid "Back to all runs"
+msgstr ""
+
+#: admin/class-log-page.php:192
+msgid "Back to All Runs"
+msgstr ""
+
+#: admin/class-log-page.php:198
+msgid "Run #%1$d — %2$s"
+msgstr ""
+
+#: admin/class-log-page.php:207
+msgid "Status:"
+msgstr ""
+
+#: admin/class-log-page.php:213
+msgid "Started:"
+msgstr ""
+
+#: admin/class-log-page.php:217
+msgid "Finished:"
+msgstr ""
+
+#: admin/class-log-page.php:221
+msgid "Rows Fetched:"
+msgstr ""
+
+#: admin/class-log-page.php:225
+msgid "Products Updated:"
+msgstr ""
+
+#: admin/class-log-page.php:232
+msgid "Message:"
+msgstr ""
+
+#: admin/class-log-page.php:238
+msgid "Item-Level Outcomes"
+msgstr ""
+
+#: admin/class-log-page.php:243
+msgid "SKU"
+msgstr ""
+
+#: admin/class-log-page.php:244
+msgid "Matched Product"
+msgstr ""
+
+#: admin/class-log-page.php:245
+msgid "Supplier Qty"
+msgstr ""
+
+#: admin/class-log-page.php:246
+msgid "Status Transition"
+msgstr ""
+
+#: admin/class-log-page.php:247
+msgid "Action"
+msgstr ""
+
+#: admin/class-log-page.php:248
+msgid "Note"
+msgstr ""
+
+#: admin/class-log-page.php:254
+msgid "No items recorded for this run."
+msgstr ""
+
+#: admin/class-log-page.php:269
+msgid "Product"
+msgstr ""
+
+#: admin/class-log-page.php:276
+msgid "Unmatched"
+msgstr ""
+
+#: admin/class-product-meta-box.php:75 admin/class-product-meta-box.php:200
+msgid "Supplier Stock Sync"
+msgstr ""
+
+#: admin/class-product-meta-box.php:76
+msgid "Synchronise stock status from supplier inventory feeds for this product."
+msgstr ""
+
+#: admin/class-product-meta-box.php:90
+msgid "Last Sync Info"
+msgstr ""
+
+#: admin/class-product-meta-box.php:94
+msgid "Supplier:"
+msgstr ""
+
+#: admin/class-product-meta-box.php:97
+msgid "Last Qty:"
+msgstr ""
+
+#: admin/class-product-meta-box.php:100
+msgid "Last Synced:"
+msgstr ""
+
+#: admin/class-product-meta-box.php:140
+msgid "Supplier Stock Sync enabled for this variation"
+msgstr ""
+
+#: admin/class-product-meta-box.php:232
+msgid "Active (Last synced: %s)"
+msgstr ""
+
+#: admin/class-product-meta-box.php:232 admin/class-product-meta-box.php:234 admin/class-settings-page.php:389
+msgid "Active"
+msgstr ""
+
+#: admin/class-product-meta-box.php:236 admin/class-settings-page.php:391
+msgid "Disabled"
+msgstr ""
+
+#: admin/class-settings-page.php:53
+msgid "General Settings"
+msgstr ""
+
+#: admin/class-settings-page.php:60
+msgid "Enable Stock Sync"
+msgstr ""
+
+#: admin/class-settings-page.php:68
+msgid "Schedule Method"
+msgstr ""
+
+#: admin/class-settings-page.php:76
+msgid "Sync Interval (WP-Cron)"
+msgstr ""
+
+#: admin/class-settings-page.php:84
+msgid "Delete Data on Uninstall"
+msgstr ""
+
+#: admin/class-settings-page.php:114
+msgid "%s Settings"
+msgstr ""
+
+#: admin/class-settings-page.php:121
+msgid "Configure the live feed connector for %s."
+msgstr ""
+
+#: admin/class-settings-page.php:213 admin/class-settings-page.php:685
+msgid "Supplier Feed URL must be a valid, secure HTTPS URL."
+msgstr ""
+
+#: admin/class-settings-page.php:233
+msgid "Configure automatic stock synchronization and lifecycle behaviour."
+msgstr ""
+
+#: admin/class-settings-page.php:245
+msgid "Enable automatic background sync on the schedule specified below."
+msgstr ""
+
+#: admin/class-settings-page.php:260
+msgid "Built-in WP-Cron (Default)"
+msgstr ""
+
+#: admin/class-settings-page.php:261
+msgid "Runs automatically in the background on visitor traffic according to the interval below."
+msgstr ""
+
+#: admin/class-settings-page.php:265
+msgid "Server System Cron / WP-CLI (Recommended for high reliability)"
+msgstr ""
+
+#: admin/class-settings-page.php:266
+msgid "Disables traffic-triggered cron; syncs are run by your server crontab or task scheduler on exact times."
+msgstr ""
+
+#: admin/class-settings-page.php:280
+msgid "Every 30 minutes"
+msgstr ""
+
+#: admin/class-settings-page.php:281
+msgid "Every 60 minutes (Default)"
+msgstr ""
+
+#: admin/class-settings-page.php:282 admin/class-settings-page.php:555
+msgid "Every 2 hours"
+msgstr ""
+
+#: admin/class-settings-page.php:285
+msgid "How frequently WP-Cron should poll supplier feeds for stock updates."
+msgstr ""
+
+#: admin/class-settings-page.php:299
+msgid "Drop database tables, options, and product sync meta when the plugin is uninstalled."
+msgstr ""
+
+#: admin/class-settings-page.php:302
+msgid "Leave unchecked to preserve logs and product settings if you plan to reinstall."
+msgstr ""
+
+#: admin/class-settings-page.php:350
+msgid "Test Connection"
+msgstr ""
+
+#: admin/class-settings-page.php:381
+msgid "Sync Overview & Status"
+msgstr ""
+
+#: admin/class-settings-page.php:386
+msgid "Sync Engine"
+msgstr ""
+
+#: admin/class-settings-page.php:397
+msgid "Last Run"
+msgstr ""
+
+#: admin/class-settings-page.php:403
+msgid "Never run"
+msgstr ""
+
+#: admin/class-settings-page.php:410
+msgid "Last Result"
+msgstr ""
+
+#: admin/class-settings-page.php:417
+msgid "N/A"
+msgstr ""
+
+#: admin/class-settings-page.php:423
+msgid "Next Scheduled"
+msgstr ""
+
+#: admin/class-settings-page.php:427
+msgid "Paused"
+msgstr ""
+
+#: admin/class-settings-page.php:432
+msgid "In %s"
+msgstr ""
+
+#: admin/class-settings-page.php:436
+msgid "Not scheduled"
+msgstr ""
+
+#: admin/class-settings-page.php:446
+msgid "Run Sync Now"
+msgstr ""
+
+#: admin/class-settings-page.php:467
+msgid "Notice:"
+msgstr ""
+
+#: admin/class-settings-page.php:468
+msgid "DISABLE_WP_CRON is enabled on this WordPress installation. Automatic background stock sync will only run if a real system cron job invokes wp-cron.php periodically."
+msgstr ""
+
+#: admin/class-settings-page.php:471
+msgid "Recommended server cron command (run every 15-30 mins):"
+msgstr ""
+
+#: admin/class-settings-page.php:489
+msgid "Save Settings"
+msgstr ""
+
+#: admin/class-settings-page.php:508
+msgid "Cron Pattern Reference & Server Setup Guide"
+msgstr ""
+
+#: admin/class-settings-page.php:512
+msgid "When using \"Server System Cron / WP-CLI\", your web server handles scheduled runs with exact timing independently of website visitors. Use the pattern reference and copyable commands below."
+msgstr ""
+
+#: admin/class-settings-page.php:517
+msgid "Standard Cron Pattern Syntax (5 Fields)"
+msgstr ""
+
+#: admin/class-settings-page.php:520
+msgid "Day of week (0 - 6, Sunday = 0)"
+msgstr ""
+
+#: admin/class-settings-page.php:522
+msgid "Month of year (1 - 12)"
+msgstr ""
+
+#: admin/class-settings-page.php:524
+msgid "Day of month (1 - 31)"
+msgstr ""
+
+#: admin/class-settings-page.php:526
+msgid "Hour of day (0 - 23)"
+msgstr ""
+
+#: admin/class-settings-page.php:528
+msgid "Minute of hour (0 - 59)"
+msgstr ""
+
+#: admin/class-settings-page.php:533
+msgid "Schedule"
+msgstr ""
+
+#: admin/class-settings-page.php:534
+msgid "Cron Expression"
+msgstr ""
+
+#: admin/class-settings-page.php:535
+msgid "Description"
+msgstr ""
+
+#: admin/class-settings-page.php:540
+msgid "Every 15 mins"
+msgstr ""
+
+#: admin/class-settings-page.php:542
+msgid "Runs at :00, :15, :30, :45 past every hour"
+msgstr ""
+
+#: admin/class-settings-page.php:545
+msgid "Every 30 mins"
+msgstr ""
+
+#: admin/class-settings-page.php:547
+msgid "Runs at :00 and :30 past every hour"
+msgstr ""
+
+#: admin/class-settings-page.php:550
+msgid "Every 1 hour"
+msgstr ""
+
+#: admin/class-settings-page.php:552
+msgid "Runs at minute 0 of every hour (Standard)"
+msgstr ""
+
+#: admin/class-settings-page.php:557
+msgid "Runs every 2nd hour at minute 0 (e.g. 02:00, 04:00)"
+msgstr ""
+
+#: admin/class-settings-page.php:560
+msgid "Twice daily"
+msgstr ""
+
+#: admin/class-settings-page.php:562
+msgid "Runs at 12:00 AM and 12:00 PM daily"
+msgstr ""
+
+#: admin/class-settings-page.php:565
+msgid "Once daily (Midnight)"
+msgstr ""
+
+#: admin/class-settings-page.php:567
+msgid "Runs once a day at 00:00 midnight"
+msgstr ""
+
+#: admin/class-settings-page.php:574
+msgid "Recommended Server Crontab Commands"
+msgstr ""
+
+#: admin/class-settings-page.php:575
+msgid "Add one of the following lines to your server crontab (via cPanel Cron Jobs or ssh <code>crontab -e</code>):"
+msgstr ""
+
+#: admin/class-settings-page.php:579
+msgid "Option A: WP-CLI (Fastest & Most Reliable)"
+msgstr ""
+
+#: admin/class-settings-page.php:581 admin/class-settings-page.php:591
+msgid "Copy"
+msgstr ""
+
+#: admin/class-settings-page.php:589
+msgid "Option B: cURL / Wget (HTTP Trigger)"
+msgstr ""
+
+#: admin/class-settings-page.php:599
+msgid "Tip: If using Server Cron, set DISABLE_WP_CRON to true in wp-config.php to prevent visitors from triggering duplicate internal cron tasks."
+msgstr ""
+
+#: admin/class-settings-page.php:636
+msgid "Sync completed! Processed %1$d feed rows, updated stock status on %2$d product(s)."
+msgstr ""
+
+#: admin/class-settings-page.php:652 includes/class-cli.php:122
+msgid "Sync failed: %s"
+msgstr ""
+
+#: admin/class-settings-page.php:676
+msgid "Unknown or invalid supplier specified."
+msgstr ""
+
+#: admin/class-settings-page.php:706
+msgid "Connection failed: %s"
+msgstr ""
+
+#: admin/class-settings-page.php:714
+msgid "Connection successful! Feed responded with %1$d raw rows (%2$d parsed stock items)."
+msgstr ""
+
+#: admin/class-settings-page.php:729
+msgid "Connection test error: %s"
+msgstr ""
+
+#: gco-stock-sync.php:95
+msgid "This plugin requires WooCommerce to be installed and activated."
+msgstr ""
+
+#: includes/class-activator.php:88 includes/class-plugin.php:185
+msgid "Every %d minutes (GCO Stock Sync)"
+msgstr ""
+
+#: includes/class-cli.php:55
+msgid "Sync lock cleared by --force."
+msgstr ""
+
+#: includes/class-cli.php:65
+msgid "Supplier '%s' is not registered."
+msgstr ""
+
+#: includes/class-cli.php:75
+msgid "No suppliers registered."
+msgstr ""
+
+#: includes/class-cli.php:84
+msgid "Supplier '%s' is not configured (missing feed URL). Skipping."
+msgstr ""
+
+#: includes/class-cli.php:94
+msgid "Starting sync for '%1$s' (Mode: %2$s)..."
+msgstr ""
+
+#: includes/class-cli.php:134
+msgid "Sync skipped: %s"
+msgstr ""
+
+#: includes/class-cli.php:162
+msgid "Sync complete! Feed rows fetched: %1$d | Products updated: %2$d"
+msgstr ""
+
+#: includes/class-cli.php:182
+msgid "Dry-run feed fetch failed: %s"
+msgstr ""
+
+#: includes/class-cli.php:193
+msgid "Feed fetched successfully: %1$d raw rows, %2$d parsed items."
+msgstr ""
+
+#: includes/class-cli.php:222
+msgid "No WooCommerce product found for this SKU"
+msgstr ""
+
+#: includes/class-cli.php:237
+msgid "Could not load WooCommerce product"
+msgstr ""
+
+#: includes/class-cli.php:254
+msgid "Sync disabled for this product"
+msgstr ""
+
+#: includes/class-cli.php:289
+msgid "Dry run complete (NO changes made). Would update: %1$d | Unchanged: %2$d | Unmatched: %3$d | Skipped: %4$d"
+msgstr ""
+
+#: includes/class-failure-notifier.php:136
+msgid "[%s] Stock Sync Alert: Repeated sync failures detected"
+msgstr ""
+
+#: includes/class-failure-notifier.php:140
+msgid ""
+"Attention Admin,\n"
+"\n"
+"The GCO Stock Sync plugin on %1$s has failed %2$d consecutive times while connecting to supplier '%3$s'.\n"
+"\n"
+""
+msgstr ""
+
+#: includes/class-failure-notifier.php:149
+msgid ""
+"Reported Error:\n"
+"%s\n"
+"\n"
+""
+msgstr ""
+
+#: includes/class-failure-notifier.php:154
+msgid ""
+"SAFETY NOTICE:\n"
+"Per plugin safety rules, existing WooCommerce stock statuses have been preserved and NOT changed. No products were set out of stock.\n"
+"\n"
+""
+msgstr ""
+
+#: includes/class-failure-notifier.php:158
+msgid ""
+"Please review the sync history and supplier feed settings:\n"
+"%s\n"
+""
+msgstr ""
+
+#: includes/class-plugin.php:280
+msgid "DISABLE_WP_CRON is set. Scheduled stock syncs will not run unless an external cron job hits wp-cron.php on schedule, or you switch to Server Cron mode."
+msgstr ""
+
+#: includes/suppliers/class-highland-outdoors.php:44
+msgid "Highland Outdoors"
+msgstr ""
+
+#: includes/suppliers/class-highland-outdoors.php:53
+msgid "Feed URL"
+msgstr ""
+
+#: includes/suppliers/class-highland-outdoors.php:56
+msgid "NetSuite web query URL. Contact Highland Outdoors for a fresh URL if the hash expires."
+msgstr ""
+
+#: includes/suppliers/class-highland-outdoors.php:59
+msgid "Minimum Product Rows"
+msgstr ""
+
+#: includes/suppliers/class-highland-outdoors.php:62
+msgid "If the feed returns fewer product rows than this, the fetch is rejected as suspiciously empty."
+msgstr ""
+
+#: includes/suppliers/class-highland-outdoors.php:109
+msgid "Feed URL must be a valid https:// address."
+msgstr ""
+
+#: includes/suppliers/class-highland-outdoors.php:130
+msgid "Unexpected HTTP status: %d"
+msgstr ""
+
+#: includes/suppliers/class-highland-outdoors.php:134
+msgid "Empty response body."
+msgstr ""
+
+#: includes/suppliers/class-highland-outdoors.php:139
+msgid "Response does not contain the expected feed table."
+msgstr ""
+
+#: includes/suppliers/class-highland-outdoors.php:146
+msgid "Unable to parse the feed table."
+msgstr ""
+
+#: includes/suppliers/class-highland-outdoors.php:155
+msgid "Feed returned fewer product rows than the configured minimum."
+msgstr ""
+
+#: includes/sync/class-product-matcher.php:50
+msgid "SKU matched only after trimming surrounding whitespace."
+msgstr ""
+
+#: includes/sync/class-product-matcher.php:95
+msgid "SKU \"%1$s\" matched %2$d products after case/whitespace normalisation; used the first match. Ask the client to de-duplicate SKUs."
+msgstr ""
+
+#: includes/sync/class-product-matcher.php:107
+msgid "SKU \"%s\" matched only after case/whitespace normalisation. Consider cleaning up SKU data."
+msgstr ""
+
+#: includes/sync/class-sync-runner.php:70
+msgid "Another sync run is already in progress."
+msgstr ""
+
+#: includes/sync/class-sync-runner.php:103
+msgid "Unknown supplier."
+msgstr ""
+
+#: includes/sync/class-sync-runner.php:135
+msgid "Exception while processing this item: %s"
+msgstr ""
+
+#: includes/sync/class-sync-runner.php:193 includes/sync/class-sync-runner.php:202
+msgid "Matched post is not a loadable WooCommerce product."
+msgstr ""
+
+#: includes/sync/class-sync-runner.php:210 includes/sync/class-sync-runner.php:219
+msgid "Sync disabled for this product."
+msgstr ""
+
+#: includes/sync/class-sync-runner.php:225
+msgid "Warning: manage_stock is enabled for this product; only stock status is updated, quantity is left untouched."
+msgstr ""
+

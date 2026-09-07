@@ -102,10 +102,14 @@ class GCO_Stock_Sync_Admin {
 			'gco-stock-sync-admin',
 			'gco_ss_admin',
 			array(
-				'ajax_url'          => admin_url( 'admin-ajax.php' ),
-				'manual_run_nonce'  => wp_create_nonce( 'gco_stock_sync_manual_run' ),
-				'strings'           => array(
-					'running' => __( 'Sync in progress... Please wait.', 'gco-stock-sync' ),
+				'ajax_url'              => admin_url( 'admin-ajax.php' ),
+				'manual_run_nonce'      => wp_create_nonce( 'gco_stock_sync_manual_run' ),
+				'test_connection_nonce' => wp_create_nonce( 'gco_stock_sync_test_connection' ),
+				'strings'               => array(
+					'running'        => __( 'Sync in progress... Please wait.', 'gco-stock-sync' ),
+					'testing'        => __( 'Testing connection...', 'gco-stock-sync' ),
+					'copied'         => __( 'Copied to clipboard!', 'gco-stock-sync' ),
+					'copy_failed'    => __( 'Copy failed.', 'gco-stock-sync' ),
 				),
 			)
 		);

@@ -78,7 +78,9 @@ class GCO_Stock_Sync_Sync_Runner {
 		}
 
 		try {
-			return $this->do_run( $supplier_key, $supplier );
+			$result = $this->do_run( $supplier_key, $supplier );
+			do_action( 'gco_stock_sync_run_completed', $supplier_key, $result );
+			return $result;
 		} finally {
 			$this->release_lock();
 		}

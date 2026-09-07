@@ -58,6 +58,16 @@ add_action(
 );
 
 /**
+ * Load plugin textdomain for translations.
+ */
+add_action(
+	'init',
+	function () {
+		load_plugin_textdomain( 'gco-stock-sync', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+	}
+);
+
+/**
  * Load the plugin after all plugins are loaded, so WooCommerce is available.
  */
 add_action(

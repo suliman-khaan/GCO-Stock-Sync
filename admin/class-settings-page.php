@@ -30,6 +30,7 @@ class GCO_Stock_Sync_Settings_Page {
 	public function init() {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'wp_ajax_gco_stock_sync_manual_run', array( $this, 'ajax_manual_run' ) );
+		add_action( 'wp_ajax_gco_stock_sync_test_connection', array( $this, 'ajax_test_connection' ) );
 	}
 
 	/**
@@ -59,15 +60,23 @@ class GCO_Stock_Sync_Settings_Page {
 			__( 'Enable Stock Sync', 'gco-stock-sync' ),
 			array( $this, 'render_enabled_field' ),
 			'gco-stock-sync-settings',
-			'gco-stock-sync-global_section'
+			'gco_stock_sync_global_section'
+		);
+
+		add_settings_field(
+			'cron_mode',
+			__( 'Schedule Method', 'gco-stock-sync' ),
+			array( $this, 'render_cron_mode_field' ),
+			'gco-stock-sync-settings',
+			'gco_stock_sync_global_section'
 		);
 
 		add_settings_field(
 			'sync_interval',
-			__( 'Sync Interval', 'gco-stock-sync' ),
+			__( 'Sync Interval (WP-Cron)', 'gco-stock-sync' ),
 			array( $this, 'render_interval_field' ),
 			'gco-stock-sync-settings',
-			'gco-stock-sync-global_section'
+			'gco_stock_sync_global_section'
 		);
 
 		add_settings_field(
@@ -75,7 +84,7 @@ class GCO_Stock_Sync_Settings_Page {
 			__( 'Delete Data on Uninstall', 'gco-stock-sync' ),
 			array( $this, 'render_delete_uninstall_field' ),
 			'gco-stock-sync-settings',
-			'gco-stock-sync-global_section'
+			'gco_stock_sync_global_section'
 		);
 
 		// 2. Per-Supplier Sections & Settings
@@ -150,6 +159,13 @@ class GCO_Stock_Sync_Settings_Page {
 
 		// Enable sync globally
 		$output['enabled'] = ! empty( $input['enabled'] );
+
+		// Cron schedule method: wp_cron (default) or system_cron
+		$cron_mode = isset( $input['cron_mode'] ) ? sanitize_key( $input['cron_mode'] ) : 'wp_cron';
+		if ( ! in_array( $cron_mode, array( 'wp_cron', 'system_cron' ), true ) ) {
+			$cron_mode = 'wp_cron';
+		}
+		$output['cron_mode'] = $cron_mode;
 
 		// Sync interval: only 30, 60, 120 allowed. Fallback to 60.
 		$interval = isset( $input['sync_interval'] ) ? absint( $input['sync_interval'] ) : 60;
@@ -232,6 +248,28 @@ class GCO_Stock_Sync_Settings_Page {
 	}
 
 	/**
+	 * Render 'cron_mode' radio selection.
+	 */
+	public function render_cron_mode_field() {
+		$settings = get_option( self::OPTION_KEY, array() );
+		$current  = isset( $settings['cron_mode'] ) ? $settings['cron_mode'] : 'wp_cron';
+		?>
+		<fieldset class="gco-ss-cron-mode-fieldset">
+			<label style="display: block; margin-bottom: 8px;">
+				<input type="radio" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[cron_mode]" value="wp_cron" <?php checked( $current, 'wp_cron' ); ?> class="gco-ss-cron-mode-radio" />
+				<strong><?php esc_html_e( 'Built-in WP-Cron (Default)', 'gco-stock-sync' ); ?></strong> —
+				<?php esc_html_e( 'Runs automatically in the background on visitor traffic according to the interval below.', 'gco-stock-sync' ); ?>
+			</label>
+			<label style="display: block; margin-bottom: 4px;">
+				<input type="radio" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[cron_mode]" value="system_cron" <?php checked( $current, 'system_cron' ); ?> class="gco-ss-cron-mode-radio" />
+				<strong><?php esc_html_e( 'Server System Cron / WP-CLI (Recommended for high reliability)', 'gco-stock-sync' ); ?></strong> —
+				<?php esc_html_e( 'Disables traffic-triggered cron; syncs are run by your server crontab or task scheduler on exact times.', 'gco-stock-sync' ); ?>
+			</label>
+		</fieldset>
+		<?php
+	}
+
+	/**
 	 * Render 'sync_interval' select dropdown.
 	 */
 	public function render_interval_field() {
@@ -304,7 +342,17 @@ class GCO_Stock_Sync_Settings_Page {
 			case 'url':
 			default:
 				?>
-				<input type="text" name="<?php echo esc_attr( $input_name ); ?>" value="<?php echo esc_attr( $val ); ?>" class="regular-text code" style="width: 100%; max-width: 600px;" />
+				<input type="text" name="<?php echo esc_attr( $input_name ); ?>" id="<?php echo esc_attr( $input_name ); ?>" value="<?php echo esc_attr( $val ); ?>" class="regular-text code" style="width: 100%; max-width: 600px;" />
+				<?php if ( 'feed_url' === $field_id ) : ?>
+					<div class="gco-ss-test-conn-wrapper" style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+						<button type="button" class="button button-secondary gco-ss-test-connection-btn" data-supplier="<?php echo esc_attr( $args['supplier_key'] ); ?>" data-input="<?php echo esc_attr( $input_name ); ?>">
+							<span class="dashicons dashicons-rest-api" style="vertical-align: middle; margin-top: -2px;"></span>
+							<?php esc_html_e( 'Test Connection', 'gco-stock-sync' ); ?>
+						</button>
+						<span class="spinner gco-ss-test-spinner" style="float: none; margin: 0;"></span>
+						<span class="gco-ss-test-result"></span>
+					</div>
+				<?php endif; ?>
 				<?php if ( ! empty( $spec['description'] ) ) : ?>
 					<p class="description"><?php echo esc_html( $spec['description'] ); ?></p>
 				<?php endif; ?>
@@ -442,6 +490,118 @@ class GCO_Stock_Sync_Settings_Page {
 			?>
 		</form>
 		<?php
+		$this->render_cron_guide();
+	}
+
+	/**
+	 * Render the cron pattern reference guide and server cron setup instructions.
+	 */
+	public function render_cron_guide() {
+		$site_url  = site_url( 'wp-cron.php?doing_wp_cron' );
+		$abspath   = rtrim( ABSPATH, '/\\' );
+		$cli_cmd   = "0 * * * * wp gco-stock-sync run --path=\"{$abspath}\" >/dev/null 2>&1";
+		$curl_cmd  = "0 * * * * curl -s -L \"{$site_url}\" >/dev/null 2>&1";
+		?>
+		<div class="gco-ss-guide-card">
+			<h2>
+				<span class="dashicons dashicons-calendar-alt"></span>
+				<?php esc_html_e( 'Cron Pattern Reference & Server Setup Guide', 'gco-stock-sync' ); ?>
+			</h2>
+
+			<p class="description">
+				<?php esc_html_e( 'When using "Server System Cron / WP-CLI", your web server handles scheduled runs with exact timing independently of website visitors. Use the pattern reference and copyable commands below.', 'gco-stock-sync' ); ?>
+			</p>
+
+			<div class="gco-ss-guide-columns">
+				<div class="gco-ss-guide-col">
+					<h3><?php esc_html_e( 'Standard Cron Pattern Syntax (5 Fields)', 'gco-stock-sync' ); ?></h3>
+					<pre class="gco-ss-code-block"><code>* * * * *
+│ │ │ │ │
+│ │ │ │ └─── <?php esc_html_e( 'Day of week (0 - 6, Sunday = 0)', 'gco-stock-sync' ); ?>
+
+│ │ │ └───── <?php esc_html_e( 'Month of year (1 - 12)', 'gco-stock-sync' ); ?>
+
+│ │ └─────── <?php esc_html_e( 'Day of month (1 - 31)', 'gco-stock-sync' ); ?>
+
+│ └───────── <?php esc_html_e( 'Hour of day (0 - 23)', 'gco-stock-sync' ); ?>
+
+└─────────── <?php esc_html_e( 'Minute of hour (0 - 59)', 'gco-stock-sync' ); ?></code></pre>
+
+					<table class="widefat striped gco-ss-pattern-table">
+						<thead>
+							<tr>
+								<th><?php esc_html_e( 'Schedule', 'gco-stock-sync' ); ?></th>
+								<th><?php esc_html_e( 'Cron Expression', 'gco-stock-sync' ); ?></th>
+								<th><?php esc_html_e( 'Description', 'gco-stock-sync' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><strong><?php esc_html_e( 'Every 15 mins', 'gco-stock-sync' ); ?></strong></td>
+								<td><code>*/15 * * * *</code></td>
+								<td><?php esc_html_e( 'Runs at :00, :15, :30, :45 past every hour', 'gco-stock-sync' ); ?></td>
+							</tr>
+							<tr>
+								<td><strong><?php esc_html_e( 'Every 30 mins', 'gco-stock-sync' ); ?></strong></td>
+								<td><code>*/30 * * * *</code></td>
+								<td><?php esc_html_e( 'Runs at :00 and :30 past every hour', 'gco-stock-sync' ); ?></td>
+							</tr>
+							<tr>
+								<td><strong><?php esc_html_e( 'Every 1 hour', 'gco-stock-sync' ); ?></strong></td>
+								<td><code>0 * * * *</code></td>
+								<td><?php esc_html_e( 'Runs at minute 0 of every hour (Standard)', 'gco-stock-sync' ); ?></td>
+							</tr>
+							<tr>
+								<td><strong><?php esc_html_e( 'Every 2 hours', 'gco-stock-sync' ); ?></strong></td>
+								<td><code>0 */2 * * *</code></td>
+								<td><?php esc_html_e( 'Runs every 2nd hour at minute 0 (e.g. 02:00, 04:00)', 'gco-stock-sync' ); ?></td>
+							</tr>
+							<tr>
+								<td><strong><?php esc_html_e( 'Twice daily', 'gco-stock-sync' ); ?></strong></td>
+								<td><code>0 0,12 * * *</code></td>
+								<td><?php esc_html_e( 'Runs at 12:00 AM and 12:00 PM daily', 'gco-stock-sync' ); ?></td>
+							</tr>
+							<tr>
+								<td><strong><?php esc_html_e( 'Once daily (Midnight)', 'gco-stock-sync' ); ?></strong></td>
+								<td><code>0 0 * * *</code></td>
+								<td><?php esc_html_e( 'Runs once a day at 00:00 midnight', 'gco-stock-sync' ); ?></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<div class="gco-ss-guide-col">
+					<h3><?php esc_html_e( 'Recommended Server Crontab Commands', 'gco-stock-sync' ); ?></h3>
+					<p><?php esc_html_e( 'Add one of the following lines to your server crontab (via cPanel Cron Jobs or ssh <code>crontab -e</code>):', 'gco-stock-sync' ); ?></p>
+
+					<div class="gco-ss-cmd-box">
+						<div class="gco-ss-cmd-title">
+							<strong><?php esc_html_e( 'Option A: WP-CLI (Fastest & Most Reliable)', 'gco-stock-sync' ); ?></strong>
+							<button type="button" class="button button-small gco-ss-copy-btn" data-copy="<?php echo esc_attr( $cli_cmd ); ?>">
+								<?php esc_html_e( 'Copy', 'gco-stock-sync' ); ?>
+							</button>
+						</div>
+						<code><?php echo esc_html( $cli_cmd ); ?></code>
+					</div>
+
+					<div class="gco-ss-cmd-box" style="margin-top: 15px;">
+						<div class="gco-ss-cmd-title">
+							<strong><?php esc_html_e( 'Option B: cURL / Wget (HTTP Trigger)', 'gco-stock-sync' ); ?></strong>
+							<button type="button" class="button button-small gco-ss-copy-btn" data-copy="<?php echo esc_attr( $curl_cmd ); ?>">
+								<?php esc_html_e( 'Copy', 'gco-stock-sync' ); ?>
+							</button>
+						</div>
+						<code><?php echo esc_html( $curl_cmd ); ?></code>
+					</div>
+
+					<div class="gco-ss-tip-box" style="margin-top: 20px;">
+						<span class="dashicons dashicons-info" style="color: #2271b1; margin-right: 6px;"></span>
+						<em><?php esc_html_e( 'Tip: If using Server Cron, set DISABLE_WP_CRON to true in wp-config.php to prevent visitors from triggering duplicate internal cron tasks.', 'gco-stock-sync' ); ?></em>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php
 	}
 
 	/**
@@ -490,6 +650,83 @@ class GCO_Stock_Sync_Settings_Page {
 				'message' => sprintf(
 					/* translators: %s: error message */
 					__( 'Sync failed: %s', 'gco-stock-sync' ),
+					$e->getMessage()
+				),
+			) );
+		}
+	}
+
+	/**
+	 * Handle AJAX request to test connection to a supplier feed.
+	 */
+	public function ajax_test_connection() {
+		// 1. Capability check
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied. You must be able to manage WooCommerce.', 'gco-stock-sync' ) ), 403 );
+		}
+
+		// 2. Nonce verification
+		check_ajax_referer( 'gco_stock_sync_test_connection', 'nonce' );
+
+		$supplier_key = isset( $_POST['supplier_key'] ) ? sanitize_key( $_POST['supplier_key'] ) : '';
+		$feed_url     = isset( $_POST['feed_url'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['feed_url'] ) ) ) : '';
+
+		$suppliers = GCO_Stock_Sync_Plugin::get_instance()->get_suppliers();
+		if ( empty( $supplier_key ) || ! isset( $suppliers[ $supplier_key ] ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unknown or invalid supplier specified.', 'gco-stock-sync' ) ) );
+		}
+
+		$supplier = $suppliers[ $supplier_key ];
+
+		// If a feed_url was provided in the input, test with it directly (after validating https)
+		if ( ! empty( $feed_url ) ) {
+			$clean_url = esc_url_raw( $feed_url, array( 'https' ) );
+			if ( 0 !== stripos( $clean_url, 'https://' ) ) {
+				wp_send_json_error( array( 'message' => __( 'Supplier Feed URL must be a valid, secure HTTPS URL.', 'gco-stock-sync' ) ) );
+			}
+			// Temporary option filter for testing unsaved feed_url
+			add_filter( "option_gco_stock_sync_supplier_{$supplier_key}", function( $opts ) use ( $clean_url ) {
+				if ( ! is_array( $opts ) ) {
+					$opts = array();
+				}
+				$opts['feed_url'] = $clean_url;
+				return $opts;
+			} );
+		}
+
+		try {
+			// Safety: test connection ONLY fetches the feed.
+			// It NEVER calls matcher, NEVER calls set_stock_status(), and NEVER logs a run to the database.
+			$fetch = $supplier->fetch();
+
+			if ( ! $fetch->ok ) {
+				wp_send_json_error( array(
+					'message' => sprintf(
+						/* translators: %s: error message */
+						__( 'Connection failed: %s', 'gco-stock-sync' ),
+						$fetch->error_message
+					),
+				) );
+			}
+
+			$msg = sprintf(
+				/* translators: 1: raw rows, 2: parsed items */
+				__( 'Connection successful! Feed responded with %1$d raw rows (%2$d parsed stock items).', 'gco-stock-sync' ),
+				$fetch->raw_row_count,
+				count( $fetch->items )
+			);
+
+			wp_send_json_success( array(
+				'message'      => $msg,
+				'raw_rows'     => $fetch->raw_row_count,
+				'parsed_items' => count( $fetch->items ),
+			) );
+
+		} catch ( Throwable $e ) {
+			wp_send_json_error( array(
+				'message' => sprintf(
+					/* translators: %s: exception message */
+					__( 'Connection test error: %s', 'gco-stock-sync' ),
 					$e->getMessage()
 				),
 			) );

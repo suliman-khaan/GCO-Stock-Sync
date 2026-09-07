@@ -41,6 +41,8 @@ if ( file_exists( $_tests_dir . '/includes/functions.php' ) ) {
 	require_once dirname( dirname( __FILE__ ) ) . '/includes/class-activator.php';
 	require_once dirname( dirname( __FILE__ ) ) . '/includes/class-deactivator.php';
 	require_once dirname( dirname( __FILE__ ) ) . '/includes/class-logger.php';
+	require_once dirname( dirname( __FILE__ ) ) . '/includes/class-failure-notifier.php';
+	require_once dirname( dirname( __FILE__ ) ) . '/includes/class-cli.php';
 	require_once dirname( dirname( __FILE__ ) ) . '/includes/suppliers/interface-supplier.php';
 	require_once dirname( dirname( __FILE__ ) ) . '/includes/suppliers/class-fetch-result.php';
 	require_once dirname( dirname( __FILE__ ) ) . '/includes/suppliers/abstract-supplier.php';

@@ -19,6 +19,7 @@ require_once __DIR__ . '/integration/test-sync-runner.php';
 require_once __DIR__ . '/integration/test-admin-settings.php';
 require_once __DIR__ . '/integration/test-admin-log.php';
 require_once __DIR__ . '/integration/test-admin-product-meta.php';
+require_once __DIR__ . '/integration/test-hardening.php';
 
 $test_classes = array(
 	'Test_Lifecycle',
@@ -28,6 +29,7 @@ $test_classes = array(
 	'Test_Admin_Settings',
 	'Test_Admin_Log',
 	'Test_Admin_Product_Meta',
+	'Test_Hardening',
 );
 
 $total_passed = 0;

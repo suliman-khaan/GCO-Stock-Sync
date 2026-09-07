@@ -37,6 +37,13 @@ class GCO_Stock_Sync_Plugin {
 	private $admin = null;
 
 	/**
+	 * Failure notifier instance.
+	 *
+	 * @var GCO_Stock_Sync_Failure_Notifier|null
+	 */
+	private $failure_notifier = null;
+
+	/**
 	 * Get the singleton instance.
 	 *
 	 * @return GCO_Stock_Sync_Plugin
@@ -80,6 +87,11 @@ class GCO_Stock_Sync_Plugin {
 		require_once $path . 'class-activator.php';
 		require_once $path . 'class-deactivator.php';
 		require_once $path . 'class-logger.php';
+		require_once $path . 'class-failure-notifier.php';
+
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			require_once $path . 'class-cli.php';
+		}
 
 		require_once $path . 'suppliers/interface-supplier.php';
 		require_once $path . 'suppliers/class-fetch-result.php';
@@ -102,6 +114,10 @@ class GCO_Stock_Sync_Plugin {
 	 * Register all hooks and filters.
 	 */
 	private function register_hooks() {
+		// Initialize failure notifier.
+		$this->failure_notifier = new GCO_Stock_Sync_Failure_Notifier();
+		$this->failure_notifier->init();
+
 		// Register custom cron interval.
 		add_filter( 'cron_schedules', array( $this, 'register_cron_interval' ) );
 
@@ -113,7 +129,7 @@ class GCO_Stock_Sync_Plugin {
 		// Register the built-in suppliers. Third parties can add more via this filter.
 		add_filter( 'gco_stock_sync_suppliers', array( $this, 'register_builtin_suppliers' ) );
 
-		// Reschedule cron cleanly when the sync_interval setting changes.
+		// Reschedule cron cleanly when the settings change.
 		add_action( 'update_option_gco_stock_sync_settings', array( $this, 'maybe_reschedule_cron' ), 10, 2 );
 
 		// Warn if WP-Cron is disabled, since scheduled syncs won't run without an external trigger.
@@ -211,18 +227,26 @@ class GCO_Stock_Sync_Plugin {
 	}
 
 	/**
-	 * Reschedule the cron event when the sync_interval setting changes, so a
-	 * saved settings change takes effect immediately rather than waiting for
-	 * the previous interval to elapse.
+	 * Reschedule or clear the cron event when settings change (interval, mode, or enabled state).
 	 *
 	 * @param array $old_value Previous settings.
 	 * @param array $new_value New settings.
 	 */
 	public function maybe_reschedule_cron( $old_value, $new_value ) {
+		$old_mode = isset( $old_value['cron_mode'] ) ? $old_value['cron_mode'] : 'wp_cron';
+		$new_mode = isset( $new_value['cron_mode'] ) ? $new_value['cron_mode'] : 'wp_cron';
+
 		$old_interval = isset( $old_value['sync_interval'] ) ? absint( $old_value['sync_interval'] ) : null;
 		$new_interval = isset( $new_value['sync_interval'] ) ? absint( $new_value['sync_interval'] ) : null;
 
-		if ( $old_interval === $new_interval ) {
+		// If explicitly disabled or switched to system_cron, ensure WP-Cron event is removed.
+		if ( 'system_cron' === $new_mode || ( isset( $new_value['enabled'] ) && empty( $new_value['enabled'] ) ) ) {
+			wp_clear_scheduled_hook( 'gco_stock_sync_cron' );
+			return;
+		}
+
+		// If interval and mode haven't changed and hook is scheduled, keep it.
+		if ( $old_interval === $new_interval && $old_mode === $new_mode && wp_next_scheduled( 'gco_stock_sync_cron' ) ) {
 			return;
 		}
 
@@ -231,8 +255,7 @@ class GCO_Stock_Sync_Plugin {
 	}
 
 	/**
-	 * Show an admin notice if DISABLE_WP_CRON is set, since scheduled syncs
-	 * silently won't run without an external cron hitting wp-cron.php.
+	 * Show an admin notice if DISABLE_WP_CRON is set and the plugin is in WP-Cron mode.
 	 */
 	public function maybe_warn_disable_wp_cron() {
 		if ( ! defined( 'DISABLE_WP_CRON' ) || ! DISABLE_WP_CRON ) {
@@ -240,7 +263,10 @@ class GCO_Stock_Sync_Plugin {
 		}
 
 		$settings = get_option( 'gco_stock_sync_settings', array() );
-		if ( empty( $settings['enabled'] ) ) {
+		$mode     = isset( $settings['cron_mode'] ) ? $settings['cron_mode'] : 'wp_cron';
+
+		// If system_cron is chosen, DISABLE_WP_CRON is intentional and expected.
+		if ( empty( $settings['enabled'] ) || 'system_cron' === $mode ) {
 			return;
 		}
 
@@ -248,10 +274,19 @@ class GCO_Stock_Sync_Plugin {
 		<div class="notice notice-warning">
 			<p>
 				<strong><?php esc_html_e( 'GCO Supplier Stock Sync', 'gco-stock-sync' ); ?>:</strong>
-				<?php esc_html_e( 'DISABLE_WP_CRON is set. Scheduled stock syncs will not run unless an external cron job hits wp-cron.php on schedule.', 'gco-stock-sync' ); ?>
+				<?php esc_html_e( 'DISABLE_WP_CRON is set. Scheduled stock syncs will not run unless an external cron job hits wp-cron.php on schedule, or you switch to Server Cron mode.', 'gco-stock-sync' ); ?>
 			</p>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Get the failure notifier instance.
+	 *
+	 * @return GCO_Stock_Sync_Failure_Notifier|null
+	 */
+	public function get_failure_notifier() {
+		return $this->failure_notifier;
 	}
 
 	/**

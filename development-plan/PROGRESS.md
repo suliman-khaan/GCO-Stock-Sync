@@ -12,8 +12,8 @@ is worse than no status at all.
 
 ## Current Status
 
-**Active phase:** Phase 6 — Hardening & Release
-**Phase state:** ✅ **Phase 5 Complete.** Code + 22 new tests (82/82 total suite passing).
+**Active phase:** Phase 7 — Deployment & Handover
+**Phase state:** ✅ **Phase 6 Complete.** Hardening, failure alerting, test connection, cron pattern guide, WP-CLI, i18n/POT, release packaging (93/93 total suite passing).
 
 | Phase | Status |
 |-------|--------|
@@ -22,22 +22,21 @@ is worse than no status at all.
 | 3 — Supplier Connector | ✅ Done — 15 tests passing, security-reviewed |
 | 4 — Sync Engine | ✅ Done — 21 tests passing (5 matcher + 16 runner) |
 | 5 — Admin UI | ✅ Done — 22 tests passing (settings, logs, product meta, menu) |
-| 6 — Hardening & Release | ⬜ Not started — **start here** |
-| 7 — Deployment & Handover | ⬜ Not started |
+| 6 — Hardening & Release | ✅ Done — 11 new tests (93/93 total suite passing) |
+| 7 — Deployment & Handover | ⬜ Not started — **start here** |
 
 ---
 
 ## Immediate Next Step (start here)
 
-Phase 5 is done. **Start Phase 6** — read
-`development-plan/phase-6-hardening-release/plan.md` and
-`phase-6-hardening-release/test-cases.md`.
+Phase 6 is complete. **Start Phase 7 (Deployment & Handover)** — read
+`development-plan/phase-7-deployment-handover/plan.md`.
 
-Full test suite (82 tests) confirmed green:
+Full test suite (93 tests) confirmed green:
 
 ```
 /c/wamp64/bin/php/php8.2.29/php.exe tests/run-tests.php
-→ Summary: 82 tests, 82 passed, 0 failed
+→ Summary: 93 tests, 93 passed, 0 failed
 ```
 
 17 lifecycle tests (Phase 2) + 15 supplier tests (Phase 3: the 16 planned
@@ -194,3 +193,12 @@ and the findings that came out of it).
   retention auto-purge, run detail view, product meta box toggle in Inventory tab,
   and product list column). Added 22 integration tests covering all P5-TC01 to P5-TC22.
   Full test suite: **82/82 passing** (0 failures, 0 warnings). Phase 5 marked complete.
+- **2026-09-08** — Phase 6 completed (Hardening, i18n, Failure Alerting, WP-CLI, Release).
+  Added `GCO_Stock_Sync_Failure_Notifier` with consecutive failure tracking, 24-hour alert deduplication,
+  and automatic reset on success. Added interactive "Test Connection" button in admin with AJAX handler.
+  Added Cron schedule method selection (WP-Cron vs Server System Cron) and comprehensive in-admin
+  Cron Pattern Reference & Server Setup Guide with copyable WP-CLI/curl commands. Implemented WP-CLI
+  command `wp gco-stock-sync run` supporting `--dry-run`, `--supplier`, and `--force`. Added full i18n pass,
+  generated `languages/gco-stock-sync.pot` (164 strings), built release script `bin/build-release.ps1`
+  producing clean zip `release/gco-stock-sync-1.0.0.zip` (49 KB). Added 11 integration tests in
+  `tests/integration/test-hardening.php`. Full test suite: **93/93 passing** (0 failures). Phase 6 marked complete.
