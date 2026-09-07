@@ -20,7 +20,17 @@ git checkout main
 
 # 2. Merge development changes without committing
 Write-Host "Merging development into main..."
-git merge --no-commit --no-ff development
+git merge --no-commit --no-ff development 2>$null
+
+# Ensure .gitignore and .gitattributes for main are strictly preserved
+if (Test-Path .gitignore) {
+    git checkout HEAD -- .gitignore 2>$null
+    git add .gitignore 2>$null
+}
+if (Test-Path .gitattributes) {
+    git checkout HEAD -- .gitattributes 2>$null
+    git add .gitattributes 2>$null
+}
 
 # 3. Remove all development-only directories and files from main
 $DevItems = @(
@@ -39,20 +49,23 @@ foreach ($item in $DevItems) {
     }
 }
 
-# Ensure .gitignore for main is preserved
-if (Test-Path .gitignore) {
-    git checkout HEAD -- .gitignore 2>$null
+# Also remove any stray markdown files from root (preserve readme.txt)
+Get-ChildItem -Path . -Filter "*.md" -File | ForEach-Object {
+    git rm -f --ignore-unmatch $_.Name 2>$null
 }
 
-# 4. Commit clean release to main
-Write-Host "Committing clean release to main..."
-git commit -m "chore(release): sync clean plugin from development"
+# 4. Commit clean release to main if there are changes
+$diff = git status --porcelain
+if ($diff) {
+    Write-Host "Committing clean release to main..."
+    git commit -m "chore(release): sync clean plugin from development"
+    Write-Host "Pushing main to GitHub..."
+    git push origin main
+} else {
+    Write-Host "No changes to commit. main is already up to date."
+}
 
-# 5. Push main to origin
-Write-Host "Pushing main to GitHub..."
-git push origin main
-
-# 6. Switch back to development
+# 5. Switch back to development
 Write-Host "Returning to development branch..."
 git checkout development
 
