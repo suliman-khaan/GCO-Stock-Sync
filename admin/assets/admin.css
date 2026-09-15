@@ -350,9 +350,28 @@
 
 .gco-ss-test-conn-wrapper {
 	margin-top: 8px;
+	margin-bottom: 15px;
 	display: flex;
 	align-items: center;
 	gap: 8px;
 	flex-wrap: wrap;
+}
+
+/* Per-supplier tab configured/unconfigured indicator dot */
+.gco-ss-tab-dot {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	margin-left: 6px;
+	vertical-align: middle;
+}
+
+.gco-ss-tab-dot-configured {
+	background: #1a7f37;
+}
+
+.gco-ss-tab-dot-unconfigured {
+	background: #cf222e;
 }
 
