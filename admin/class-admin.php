@@ -124,26 +124,54 @@ class GCO_Stock_Sync_Admin {
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$active_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'settings';
+		$requested_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'general';
+		// 'settings' is the pre-tabs-redesign default; keep old bookmarks working.
+		if ( 'settings' === $requested_tab ) {
+			$requested_tab = 'general';
+		}
+
+		$suppliers = GCO_Stock_Sync_Plugin::get_instance()->get_suppliers();
+
+		// One tab per registered supplier, built from the same template —
+		// a future connector (Browning, GMK, ...) gets its own tab for free
+		// the moment it's registered, with no changes needed here.
+		$tabs = array( 'general' => __( 'General Settings', 'gco-stock-sync' ) );
+		foreach ( $suppliers as $key => $supplier ) {
+			$tabs[ 'supplier_' . $key ] = $supplier->get_label();
+		}
+		$tabs['logs'] = __( 'Sync History & Logs', 'gco-stock-sync' );
+
+		if ( ! array_key_exists( $requested_tab, $tabs ) ) {
+			$requested_tab = 'general';
+		}
 		?>
 		<div class="wrap gco-ss-wrap">
 			<h1 class="wp-heading-inline"><?php esc_html_e( 'GCO Supplier Stock Sync', 'gco-stock-sync' ); ?></h1>
 			<hr class="wp-header-end">
 
 			<nav class="nav-tab-wrapper woo-nav-tab-wrapper" style="margin-top: 15px; margin-bottom: 20px;">
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=gco-stock-sync&tab=settings' ) ); ?>" class="nav-tab <?php echo 'settings' === $active_tab ? 'nav-tab-active' : ''; ?>">
-					<?php esc_html_e( 'Settings', 'gco-stock-sync' ); ?>
-				</a>
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=gco-stock-sync&tab=logs' ) ); ?>" class="nav-tab <?php echo 'logs' === $active_tab ? 'nav-tab-active' : ''; ?>">
-					<?php esc_html_e( 'Sync History & Logs', 'gco-stock-sync' ); ?>
-				</a>
+				<?php foreach ( $tabs as $tab_key => $tab_label ) : ?>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=gco-stock-sync&tab=' . $tab_key ) ); ?>" class="nav-tab <?php echo $tab_key === $requested_tab ? 'nav-tab-active' : ''; ?>">
+						<?php echo esc_html( $tab_label ); ?>
+						<?php if ( 0 === strpos( $tab_key, 'supplier_' ) ) : ?>
+							<?php $supplier_key = substr( $tab_key, strlen( 'supplier_' ) ); ?>
+							<?php if ( isset( $suppliers[ $supplier_key ] ) && $suppliers[ $supplier_key ]->is_configured() ) : ?>
+								<span class="gco-ss-tab-dot gco-ss-tab-dot-configured" title="<?php esc_attr_e( 'Configured', 'gco-stock-sync' ); ?>"></span>
+							<?php else : ?>
+								<span class="gco-ss-tab-dot gco-ss-tab-dot-unconfigured" title="<?php esc_attr_e( 'Not configured', 'gco-stock-sync' ); ?>"></span>
+							<?php endif; ?>
+						<?php endif; ?>
+					</a>
+				<?php endforeach; ?>
 			</nav>
 
 			<?php
-			if ( 'logs' === $active_tab ) {
+			if ( 'logs' === $requested_tab ) {
 				$this->log_page->render();
+			} elseif ( 'general' === $requested_tab ) {
+				$this->settings_page->render_general_tab();
 			} else {
-				$this->settings_page->render();
+				$this->settings_page->render_supplier_tab( substr( $requested_tab, strlen( 'supplier_' ) ) );
 			}
 			?>
 		</div>

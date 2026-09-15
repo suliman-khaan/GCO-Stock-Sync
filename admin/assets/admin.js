@@ -54,7 +54,10 @@
 			});
 		}
 
-		// 2. Test Connection Handler
+		// 2. Test Connection Handler — serializes every declared field currently
+		// in the supplier's own tab form (saved or not) and posts it as a flat
+		// field_id -> value map, so this works the same for any supplier's tab
+		// rather than being wired to one hardcoded field name.
 		$(document).on('click', '.gco-ss-test-connection-btn', function(e) {
 			e.preventDefault();
 
@@ -63,8 +66,22 @@
 			var $spinner = $wrapper.find('.gco-ss-test-spinner');
 			var $result = $wrapper.find('.gco-ss-test-result');
 			var supplierKey = $btn.data('supplier');
-			var inputName = $btn.data('input');
-			var feedUrl = inputName ? $('input[name="' + inputName + '"]').val() : '';
+			var $form = $btn.closest('form');
+			var overrides = {};
+
+			$form.find('[name^="gco_stock_sync_supplier_' + supplierKey + '["]').each(function() {
+				var $field = $(this);
+				var match = /\[([^\]]+)\]$/.exec($field.attr('name'));
+				if (!match) {
+					return;
+				}
+				var fieldId = match[1];
+				if ($field.is(':checkbox')) {
+					overrides[fieldId] = $field.is(':checked') ? '1' : '';
+				} else {
+					overrides[fieldId] = $field.val();
+				}
+			});
 
 			if ($btn.prop('disabled')) {
 				return;
@@ -82,7 +99,7 @@
 					action: 'gco_stock_sync_test_connection',
 					nonce: gco_ss_admin.test_connection_nonce,
 					supplier_key: supplierKey,
-					feed_url: feedUrl
+					overrides: overrides
 				},
 				success: function(response) {
 					$spinner.removeClass('is-active');

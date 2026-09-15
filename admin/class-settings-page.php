@@ -25,6 +25,21 @@ class GCO_Stock_Sync_Settings_Page {
 	const OPTION_KEY = 'gco_stock_sync_settings';
 
 	/**
+	 * Settings-API page slug for the General Settings tab.
+	 */
+	const GENERAL_PAGE_SLUG = 'gco-stock-sync-settings-general';
+
+	/**
+	 * Get the Settings-API page slug for a given supplier's own tab.
+	 *
+	 * @param string $supplier_key Supplier key.
+	 * @return string
+	 */
+	public static function get_supplier_page_slug( $supplier_key ) {
+		return 'gco-stock-sync-settings-supplier-' . $supplier_key;
+	}
+
+	/**
 	 * Initialize settings registration and hooks.
 	 */
 	public function init() {
@@ -52,14 +67,14 @@ class GCO_Stock_Sync_Settings_Page {
 			'gco_stock_sync_global_section',
 			__( 'General Settings', 'gco-stock-sync' ),
 			array( $this, 'render_global_section_intro' ),
-			'gco-stock-sync-settings'
+			self::GENERAL_PAGE_SLUG
 		);
 
 		add_settings_field(
 			'enabled',
 			__( 'Enable Stock Sync', 'gco-stock-sync' ),
 			array( $this, 'render_enabled_field' ),
-			'gco-stock-sync-settings',
+			self::GENERAL_PAGE_SLUG,
 			'gco_stock_sync_global_section'
 		);
 
@@ -67,7 +82,7 @@ class GCO_Stock_Sync_Settings_Page {
 			'cron_mode',
 			__( 'Schedule Method', 'gco-stock-sync' ),
 			array( $this, 'render_cron_mode_field' ),
-			'gco-stock-sync-settings',
+			self::GENERAL_PAGE_SLUG,
 			'gco_stock_sync_global_section'
 		);
 
@@ -75,7 +90,7 @@ class GCO_Stock_Sync_Settings_Page {
 			'sync_interval',
 			__( 'Sync Interval (WP-Cron)', 'gco-stock-sync' ),
 			array( $this, 'render_interval_field' ),
-			'gco-stock-sync-settings',
+			self::GENERAL_PAGE_SLUG,
 			'gco_stock_sync_global_section'
 		);
 
@@ -83,7 +98,7 @@ class GCO_Stock_Sync_Settings_Page {
 			'delete_data_uninstall',
 			__( 'Delete Data on Uninstall', 'gco-stock-sync' ),
 			array( $this, 'render_delete_uninstall_field' ),
-			'gco-stock-sync-settings',
+			self::GENERAL_PAGE_SLUG,
 			'gco_stock_sync_global_section'
 		);
 
@@ -123,7 +138,7 @@ class GCO_Stock_Sync_Settings_Page {
 						)
 					) . '</p>';
 				},
-				'gco-stock-sync-settings'
+				self::get_supplier_page_slug( $key )
 			);
 
 			foreach ( $supplier->get_settings_fields() as $field_id => $field_spec ) {
@@ -131,7 +146,7 @@ class GCO_Stock_Sync_Settings_Page {
 					$opt_name . '_' . $field_id,
 					esc_html( $field_spec['label'] ),
 					array( $this, 'render_supplier_field' ),
-					'gco-stock-sync-settings',
+					self::get_supplier_page_slug( $key ),
 					$section_id,
 					array(
 						'supplier_key' => $key,
@@ -223,7 +238,57 @@ class GCO_Stock_Sync_Settings_Page {
 			$output['min_rows'] = max( 1, absint( $input['min_rows'] ) );
 		}
 
+		// Generic fallback: sanitize any other field the supplier declares via
+		// get_settings_fields() by its declared type, so connectors beyond
+		// Highland (whose feed_url/min_rows keys are already handled above)
+		// can persist settings without each needing its own bespoke branch
+		// here. Fields already set above are left untouched, and any key the
+		// supplier hasn't declared stays dropped, same as before this loop.
+		$suppliers = GCO_Stock_Sync_Plugin::get_instance()->get_suppliers();
+		$supplier  = isset( $suppliers[ $supplier_key ] ) ? $suppliers[ $supplier_key ] : null;
+
+		if ( $supplier ) {
+			foreach ( $supplier->get_settings_fields() as $field_id => $field_spec ) {
+				if ( array_key_exists( $field_id, $output ) || ! isset( $input[ $field_id ] ) ) {
+					continue;
+				}
+
+				$type                = isset( $field_spec['type'] ) ? $field_spec['type'] : 'text';
+				$output[ $field_id ] = $this->sanitize_field_by_type( $input[ $field_id ], $type );
+			}
+		}
+
 		return $output;
+	}
+
+	/**
+	 * Sanitize a single settings-field value according to its declared type.
+	 *
+	 * @param mixed  $value Raw input value.
+	 * @param string $type  Declared field type.
+	 * @return mixed Sanitized value.
+	 */
+	private function sanitize_field_by_type( $value, $type ) {
+		switch ( $type ) {
+			case 'checkbox':
+				return ! empty( $value );
+
+			case 'number':
+				return absint( $value );
+
+			case 'textarea':
+				return sanitize_textarea_field( (string) $value );
+
+			case 'password':
+				return trim( (string) $value );
+
+			case 'url':
+				return esc_url_raw( trim( (string) $value ), array( 'https' ) );
+
+			case 'text':
+			default:
+				return sanitize_text_field( (string) $value );
+		}
 	}
 
 	/**
@@ -338,21 +403,20 @@ class GCO_Stock_Sync_Settings_Page {
 				<?php
 				break;
 
+			case 'textarea':
+				?>
+				<textarea name="<?php echo esc_attr( $input_name ); ?>" id="<?php echo esc_attr( $input_name ); ?>" rows="8" class="large-text code" style="width: 100%; max-width: 600px; font-family: monospace;"><?php echo esc_textarea( $val ); ?></textarea>
+				<?php if ( ! empty( $spec['description'] ) ) : ?>
+					<p class="description"><?php echo esc_html( $spec['description'] ); ?></p>
+				<?php endif; ?>
+				<?php
+				break;
+
 			case 'text':
 			case 'url':
 			default:
 				?>
 				<input type="text" name="<?php echo esc_attr( $input_name ); ?>" id="<?php echo esc_attr( $input_name ); ?>" value="<?php echo esc_attr( $val ); ?>" class="regular-text code" style="width: 100%; max-width: 600px;" />
-				<?php if ( 'feed_url' === $field_id ) : ?>
-					<div class="gco-ss-test-conn-wrapper" style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
-						<button type="button" class="button button-secondary gco-ss-test-connection-btn" data-supplier="<?php echo esc_attr( $args['supplier_key'] ); ?>" data-input="<?php echo esc_attr( $input_name ); ?>">
-							<span class="dashicons dashicons-rest-api" style="vertical-align: middle; margin-top: -2px;"></span>
-							<?php esc_html_e( 'Test Connection', 'gco-stock-sync' ); ?>
-						</button>
-						<span class="spinner gco-ss-test-spinner" style="float: none; margin: 0;"></span>
-						<span class="gco-ss-test-result"></span>
-					</div>
-				<?php endif; ?>
 				<?php if ( ! empty( $spec['description'] ) ) : ?>
 					<p class="description"><?php echo esc_html( $spec['description'] ); ?></p>
 				<?php endif; ?>
@@ -476,21 +540,78 @@ class GCO_Stock_Sync_Settings_Page {
 	}
 
 	/**
-	 * Render the full settings page HTML.
+	 * Render the General Settings tab: overview panel, global toggles, cron guide.
 	 */
-	public function render() {
+	public function render_general_tab() {
 		$this->render_cron_warning();
 		$this->render_status_panel();
 		?>
 		<form method="post" action="options.php">
 			<?php
 			settings_fields( self::SETTINGS_GROUP );
-			do_settings_sections( 'gco-stock-sync-settings' );
-			submit_button( __( 'Save Settings', 'gco-stock-sync' ) );
+			do_settings_sections( self::GENERAL_PAGE_SLUG );
+			submit_button( __( 'Save General Settings', 'gco-stock-sync' ) );
 			?>
 		</form>
 		<?php
 		$this->render_cron_guide();
+	}
+
+	/**
+	 * Render one supplier's own settings tab: its fields, Test Connection,
+	 * and its own Save button — independent of every other supplier's form,
+	 * so saving one connector's settings never touches another's.
+	 *
+	 * @param string $supplier_key Supplier key, e.g. 'ladds_infac'.
+	 */
+	public function render_supplier_tab( $supplier_key ) {
+		$suppliers = GCO_Stock_Sync_Plugin::get_instance()->get_suppliers();
+
+		if ( ! isset( $suppliers[ $supplier_key ] ) ) {
+			echo '<div class="notice notice-error"><p>' . esc_html__( 'Unknown supplier.', 'gco-stock-sync' ) . '</p></div>';
+			return;
+		}
+
+		$supplier = $suppliers[ $supplier_key ];
+		?>
+		<div class="gco-ss-section">
+			<form method="post" action="options.php">
+				<?php
+				settings_fields( self::SETTINGS_GROUP );
+				do_settings_sections( self::get_supplier_page_slug( $supplier_key ) );
+				$this->render_test_connection_button( $supplier_key );
+				submit_button(
+					sprintf(
+						/* translators: %s: supplier name */
+						__( 'Save %s Settings', 'gco-stock-sync' ),
+						$supplier->get_label()
+					)
+				);
+				?>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render the single Test Connection control for a supplier's tab. The JS
+	 * side serializes every field currently on the page (whether saved yet or
+	 * not) and posts it to ajax_test_connection(), which fetches with those
+	 * values applied as a temporary override — nothing is written to the DB.
+	 *
+	 * @param string $supplier_key Supplier key.
+	 */
+	private function render_test_connection_button( $supplier_key ) {
+		?>
+		<div class="gco-ss-test-conn-wrapper">
+			<button type="button" class="button button-secondary gco-ss-test-connection-btn" data-supplier="<?php echo esc_attr( $supplier_key ); ?>">
+				<span class="dashicons dashicons-rest-api" style="vertical-align: middle; margin-top: -2px;"></span>
+				<?php esc_html_e( 'Test Connection', 'gco-stock-sync' ); ?>
+			</button>
+			<span class="spinner gco-ss-test-spinner" style="float: none; margin: 0;"></span>
+			<span class="gco-ss-test-result"></span>
+		</div>
+		<?php
 	}
 
 	/**
@@ -669,7 +790,6 @@ class GCO_Stock_Sync_Settings_Page {
 		check_ajax_referer( 'gco_stock_sync_test_connection', 'nonce' );
 
 		$supplier_key = isset( $_POST['supplier_key'] ) ? sanitize_key( $_POST['supplier_key'] ) : '';
-		$feed_url     = isset( $_POST['feed_url'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['feed_url'] ) ) ) : '';
 
 		$suppliers = GCO_Stock_Sync_Plugin::get_instance()->get_suppliers();
 		if ( empty( $supplier_key ) || ! isset( $suppliers[ $supplier_key ] ) ) {
@@ -678,20 +798,45 @@ class GCO_Stock_Sync_Settings_Page {
 
 		$supplier = $suppliers[ $supplier_key ];
 
-		// If a feed_url was provided in the input, test with it directly (after validating https)
-		if ( ! empty( $feed_url ) ) {
-			$clean_url = esc_url_raw( $feed_url, array( 'https' ) );
-			if ( 0 !== stripos( $clean_url, 'https://' ) ) {
-				wp_send_json_error( array( 'message' => __( 'Supplier Feed URL must be a valid, secure HTTPS URL.', 'gco-stock-sync' ) ) );
+		// The tab's JS serializes every declared field currently on the page
+		// (whether saved yet or not) into a flat field_id => raw value map, so
+		// Test Connection works the same way for every supplier's tab without
+		// each needing its own bespoke handling here (the old code only ever
+		// understood Highland's 'feed_url' field).
+		$raw_overrides = isset( $_POST['overrides'] ) ? wp_unslash( $_POST['overrides'] ) : array();
+		$overrides     = array();
+
+		if ( is_array( $raw_overrides ) ) {
+			$fields = $supplier->get_settings_fields();
+
+			foreach ( $raw_overrides as $field_id => $raw_value ) {
+				$field_id = sanitize_key( $field_id );
+				if ( ! isset( $fields[ $field_id ] ) ) {
+					continue; // Only declared fields can be overridden.
+				}
+
+				$type                  = isset( $fields[ $field_id ]['type'] ) ? $fields[ $field_id ]['type'] : 'text';
+				$overrides[ $field_id ] = $this->sanitize_field_by_type( $raw_value, $type );
 			}
-			// Temporary option filter for testing unsaved feed_url
-			add_filter( "option_gco_stock_sync_supplier_{$supplier_key}", function( $opts ) use ( $clean_url ) {
+		}
+
+		if ( ! empty( $overrides ) ) {
+			// Temporary option filter — never persisted, only affects this one
+			// fetch(). WordPress only fires 'option_{name}' when the option
+			// row already exists in the DB; for a supplier that has never
+			// been saved yet (e.g. testing Ladds before its first Save),
+			// get_option() short-circuits via 'default_option_{name}'
+			// instead — so both must be hooked or the override silently
+			// never applies on a brand-new, never-saved supplier.
+			$merge_overrides = function( $opts ) use ( $overrides ) {
 				if ( ! is_array( $opts ) ) {
 					$opts = array();
 				}
-				$opts['feed_url'] = $clean_url;
-				return $opts;
-			} );
+				return array_merge( $opts, $overrides );
+			};
+
+			add_filter( "option_gco_stock_sync_supplier_{$supplier_key}", $merge_overrides );
+			add_filter( "default_option_gco_stock_sync_supplier_{$supplier_key}", $merge_overrides );
 		}
 
 		try {
