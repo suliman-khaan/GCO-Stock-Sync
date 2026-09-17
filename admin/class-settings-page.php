@@ -573,6 +573,17 @@ class GCO_Stock_Sync_Settings_Page {
 		}
 
 		$supplier = $suppliers[ $supplier_key ];
+
+		// Optional, duck-typed: any supplier can surface its own status
+		// notices (e.g. Browning's "needs reauthentication" warning) without
+		// this shared page needing to know anything supplier-specific.
+		// method_exists() is false for suppliers that don't implement it
+		// (Highland, Ladds), making this a no-op for them.
+		if ( method_exists( $supplier, 'get_status_notices' ) ) {
+			foreach ( (array) $supplier->get_status_notices() as $notice ) {
+				echo '<div class="notice notice-warning"><p>' . esc_html( $notice ) . '</p></div>';
+			}
+		}
 		?>
 		<div class="gco-ss-section">
 			<form method="post" action="options.php">
