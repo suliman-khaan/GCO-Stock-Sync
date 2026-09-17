@@ -99,6 +99,8 @@ class GCO_Stock_Sync_Plugin {
 		require_once $path . 'suppliers/class-highland-outdoors.php';
 		require_once $path . 'suppliers/class-odoo-session.php';
 		require_once $path . 'suppliers/class-ladds-infac.php';
+		require_once $path . 'suppliers/class-browning-auth-session.php';
+		require_once $path . 'suppliers/class-browning.php';
 
 		require_once $path . 'sync/class-sync-result.php';
 		require_once $path . 'sync/class-product-matcher.php';
@@ -155,6 +157,9 @@ class GCO_Stock_Sync_Plugin {
 
 		$ladds_infac = new GCO_Stock_Sync_Ladds_Infac();
 		$suppliers[ $ladds_infac->get_key() ] = $ladds_infac;
+
+		$browning = new GCO_Stock_Sync_Browning();
+		$suppliers[ $browning->get_key() ] = $browning;
 
 		return $suppliers;
 	}
