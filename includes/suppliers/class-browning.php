@@ -146,10 +146,69 @@ class GCO_Stock_Sync_Browning extends GCO_Stock_Sync_Abstract_Supplier {
 		return array(
 			sprintf(
 				/* translators: %s: reason reported by Microsoft */
-				__( 'Browning needs reauthentication (%s). Log into the dealer portal again, copy the refresh token from Local Storage, and paste it into the field below.', 'gco-stock-sync' ),
+				__( 'Browning needs reauthentication (%s). Use the "Connect Browning" steps below to get a fresh token.', 'gco-stock-sync' ),
 				$session->get_reauth_message()
 			),
 		);
+	}
+
+	/**
+	 * Self-contained HTML block (trusted, plugin-authored — never user
+	 * input) with step-by-step connect/reconnect instructions, including a
+	 * bookmarklet that copies the Microsoft refresh token to the clipboard
+	 * directly from an already-logged-in dealer.browning.eu tab.
+	 *
+	 * This does NOT change the architecture or remove the human step — the
+	 * one-time (and, eventually, periodic) interactive login is unavoidable
+	 * and was already promised to the client this way (see
+	 * BROWNING-CONNECTOR-PLAN.md §3.1: we don't control Browning's Azure app
+	 * registration's redirect URIs, so this can never be fully automated
+	 * without separate hosting + automated email reading — a materially
+	 * different, more expensive approach the client already declined). This
+	 * only removes the DevTools/Local-Storage digging, replacing it with one
+	 * click, for whoever manages this site.
+	 *
+	 * Consumed by an optional, duck-typed hook in class-settings-page.php's
+	 * render_supplier_tab() — safe to exist here even before that hook is added.
+	 *
+	 * @return string
+	 */
+	public function get_connect_helper_html() {
+		// Reads Local Storage on whatever page it's run on. Clicking it
+		// directly on this WP admin page is harmless (dealer.browning.eu's
+		// data simply isn't there) — the alert just says so. It only does
+		// anything useful when clicked from a bookmark while actually on a
+		// logged-in dealer.browning.eu tab.
+		$bookmarklet_js = "javascript:(function(){try{var t=localStorage.getItem('au.rt');if(!t){alert('Could not find the refresh token on this page. Make sure you are logged into https://dealer.browning.eu/ first, then click this bookmark again.');return;}if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(function(){alert('Browning refresh token copied! Go back to the WordPress tab, paste it into the Microsoft Refresh Token field, and click Save.');},function(){window.prompt('Copy this value (Ctrl+C), then paste it into the Refresh Token field in WordPress:',t);});}else{window.prompt('Copy this value (Ctrl+C), then paste it into the Refresh Token field in WordPress:',t);}}catch(e){alert('Error reading the token: '+e.message);}})();";
+
+		$session      = new GCO_Stock_Sync_Browning_Auth_Session( $this->get_option_name() );
+		$needs_action = ! $this->is_configured() || $session->is_reauth_needed();
+
+		ob_start();
+		?>
+		<details class="gco-ss-section"<?php echo $needs_action ? ' open' : ''; ?>>
+			<summary style="cursor: pointer; font-weight: 600;"><?php esc_html_e( 'Connecting or reconnecting Browning', 'gco-stock-sync' ); ?></summary>
+			<ol style="margin-top: 12px;">
+				<li>
+					<?php
+					printf(
+						/* translators: %s: dealer portal login link (HTML) */
+						esc_html__( 'Log into %s in this browser — enter your email, then the one-time code Microsoft emails you.', 'gco-stock-sync' ),
+						'<a href="https://dealer.browning.eu/en-gb/profile/login?backurl=/en-gb/" target="_blank" rel="noopener">dealer.browning.eu</a>' // phpcs:ignore -- literal trusted HTML, printf %s placeholder
+					);
+					?>
+				</li>
+				<li>
+					<?php esc_html_e( 'Once logged in and looking at the dealer site, drag this button to your bookmarks bar (only needs doing once, ever):', 'gco-stock-sync' ); ?>
+					<p><a class="button" href="<?php echo esc_attr( $bookmarklet_js ); ?>"><?php esc_html_e( 'Get Browning Token', 'gco-stock-sync' ); ?></a></p>
+				</li>
+				<li><?php esc_html_e( 'Still on the dealer.browning.eu tab, click that bookmark. It copies the token to your clipboard and confirms it worked.', 'gco-stock-sync' ); ?></li>
+				<li><?php esc_html_e( 'Come back to this tab, paste the token into the "Microsoft Refresh Token" field below, and click Save.', 'gco-stock-sync' ); ?></li>
+			</ol>
+			<p class="description"><?php esc_html_e( 'This only needs doing once to connect Browning. If it ever needs reconnecting later (rare — every few weeks or months, per Microsoft\'s own policy), a warning will appear on this tab — just repeat these same steps.', 'gco-stock-sync' ); ?></p>
+		</details>
+		<?php
+		return (string) ob_get_clean();
 	}
 
 	/**
