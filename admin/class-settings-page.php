@@ -584,6 +584,13 @@ class GCO_Stock_Sync_Settings_Page {
 				echo '<div class="notice notice-warning"><p>' . esc_html( $notice ) . '</p></div>';
 			}
 		}
+
+		// Same pattern, for an optional connect/reconnect helper block (e.g.
+		// Browning's bookmarklet instructions). Trusted, plugin-authored
+		// HTML — not user input — so it's echoed directly rather than escaped.
+		if ( method_exists( $supplier, 'get_connect_helper_html' ) ) {
+			echo $supplier->get_connect_helper_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- trusted, plugin-authored HTML.
+		}
 		?>
 		<div class="gco-ss-section">
 			<form method="post" action="options.php">
