@@ -153,6 +153,30 @@ class GCO_Stock_Sync_Browning extends GCO_Stock_Sync_Abstract_Supplier {
 	}
 
 	/**
+	 * Field values that may have changed on disk as a side effect of the
+	 * most recent fetch() — specifically, Microsoft rotates the refresh
+	 * token on every single use, "test" or not, so a successful
+	 * refresh_cycle() always persists a new value regardless of whether this
+	 * was a real sync or a Test Connection click. Always returns the
+	 * CURRENT saved value (not whatever was in an unsaved test override), so
+	 * the admin's browser can be kept in sync with what's actually on disk —
+	 * without this, a stale value left in the form could get resubmitted via
+	 * Save, overwriting the correct (already-rotated) token with one
+	 * Microsoft has already invalidated.
+	 *
+	 * Consumed by an optional, duck-typed hook in
+	 * class-settings-page.php's ajax_test_connection() — safe to exist here
+	 * even before that hook is added.
+	 *
+	 * @return array
+	 */
+	public function get_refreshed_field_values() {
+		return array(
+			'refresh_token' => (string) $this->get_setting( 'refresh_token', '' ),
+		);
+	}
+
+	/**
 	 * Self-contained HTML block (trusted, plugin-authored — never user
 	 * input) with step-by-step connect/reconnect instructions, including a
 	 * bookmarklet that copies the Microsoft refresh token to the clipboard
