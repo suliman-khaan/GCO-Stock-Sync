@@ -105,6 +105,21 @@
 					$spinner.removeClass('is-active');
 					$btn.prop('disabled', false);
 
+					// Some connectors rotate a credential as an unavoidable
+					// side effect of even a read-only test (e.g. Browning's
+					// refresh token, which Microsoft invalidates on every
+					// use). If the server reports a field changed on disk,
+					// sync it back into the visible form now — otherwise a
+					// later Save would resubmit the old, now-dead value and
+					// silently undo the test's own successful reauth.
+					var updatedFields = (response.data && response.data.updated_fields) || {};
+					$.each(updatedFields, function(fieldId, value) {
+						var $field = $form.find('[name="gco_stock_sync_supplier_' + supplierKey + '[' + fieldId + ']"]');
+						if ($field.length) {
+							$field.val(value);
+						}
+					});
+
 					if (response.success) {
 						$result.html('<span class="gco-ss-badge status-success" style="vertical-align: middle;">' +
 							(response.data.message || 'Connected successfully!') + '</span>');

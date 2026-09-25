@@ -20,6 +20,21 @@ class GCO_Stock_Sync_Settings_Page {
 	const SETTINGS_GROUP = 'gco_stock_sync_settings_group';
 
 	/**
+	 * Settings-API group for one supplier's tab. WordPress's options.php
+	 * re-saves EVERY option registered in the submitted group (passing null
+	 * for ones not in the POST), running each one's sanitize callback — so if
+	 * all tabs shared a group, saving one tab would blank every other tab's
+	 * settings (global 'enabled' switched off, other suppliers' maps and
+	 * tokens wiped). One group per tab keeps each save isolated.
+	 *
+	 * @param string $supplier_key Supplier key.
+	 * @return string
+	 */
+	public static function get_supplier_group( $supplier_key ) {
+		return 'gco_stock_sync_supplier_group_' . $supplier_key;
+	}
+
+	/**
 	 * Global option key.
 	 */
 	const OPTION_KEY = 'gco_stock_sync_settings';
@@ -109,7 +124,7 @@ class GCO_Stock_Sync_Settings_Page {
 			$opt_name = 'gco_stock_sync_supplier_' . $key;
 
 			register_setting(
-				self::SETTINGS_GROUP,
+				self::get_supplier_group( $key ),
 				$opt_name,
 				array(
 					'type'              => 'array',
@@ -595,7 +610,7 @@ class GCO_Stock_Sync_Settings_Page {
 		<div class="gco-ss-section">
 			<form method="post" action="options.php">
 				<?php
-				settings_fields( self::SETTINGS_GROUP );
+				settings_fields( self::get_supplier_group( $supplier_key ) );
 				do_settings_sections( self::get_supplier_page_slug( $supplier_key ) );
 				$this->render_test_connection_button( $supplier_key );
 				submit_button(
@@ -862,13 +877,33 @@ class GCO_Stock_Sync_Settings_Page {
 			// It NEVER calls matcher, NEVER calls set_stock_status(), and NEVER logs a run to the database.
 			$fetch = $supplier->fetch();
 
+			// Some connectors have a real, unavoidable side effect even on a
+			// read-only test: Browning's refresh token is rotated by
+			// Microsoft on every single use, whether "test" or "real" — the
+			// old value stops working the moment it's used once, regardless
+			// of what this plugin does locally. That new value IS correctly
+			// persisted (the alternative is losing it entirely), but the
+			// browser's form still shows the old, now-dead one. If the admin
+			// then clicks Save out of habit, that stale value overwrites the
+			// correct one, and every future attempt fails with
+			// "needs_reauthentication" even though they just reauthenticated
+			// successfully. Any supplier can optionally report fields that
+			// changed on disk during fetch(), so the JS can refresh the
+			// visible field and this trap can't happen — duck-typed, so this
+			// is a no-op for every supplier that doesn't need it.
+			$updated_fields = array();
+			if ( method_exists( $supplier, 'get_refreshed_field_values' ) ) {
+				$updated_fields = (array) $supplier->get_refreshed_field_values();
+			}
+
 			if ( ! $fetch->ok ) {
 				wp_send_json_error( array(
-					'message' => sprintf(
+					'message'        => sprintf(
 						/* translators: %s: error message */
 						__( 'Connection failed: %s', 'gco-stock-sync' ),
 						$fetch->error_message
 					),
+					'updated_fields' => $updated_fields,
 				) );
 			}
 
@@ -879,10 +914,15 @@ class GCO_Stock_Sync_Settings_Page {
 				count( $fetch->items )
 			);
 
+			if ( ! empty( $updated_fields ) ) {
+				$msg .= ' ' . __( '(A credential was automatically refreshed and saved — the field below has been updated to match; no need to click Save again for that.)', 'gco-stock-sync' );
+			}
+
 			wp_send_json_success( array(
-				'message'      => $msg,
-				'raw_rows'     => $fetch->raw_row_count,
-				'parsed_items' => count( $fetch->items ),
+				'message'        => $msg,
+				'raw_rows'       => $fetch->raw_row_count,
+				'parsed_items'   => count( $fetch->items ),
+				'updated_fields' => $updated_fields,
 			) );
 
 		} catch ( Throwable $e ) {
