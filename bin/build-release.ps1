@@ -4,7 +4,7 @@
 $ErrorActionPreference = "Stop"
 
 $PluginRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
-$Version = "1.2.0"
+$Version = "1.3.0"
 $ReleaseDir = Join-Path $PluginRoot "release"
 $ZipFile = Join-Path $ReleaseDir "gco-stock-sync-$Version.zip"
 $TempDir = Join-Path $ReleaseDir "temp"

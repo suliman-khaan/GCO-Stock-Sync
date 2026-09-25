@@ -143,6 +143,55 @@ class GCO_Stock_Sync_Ladds_Infac extends GCO_Stock_Sync_Abstract_Supplier {
 	}
 
 	/**
+	 * Step-by-step guide for filling in the Product Map, shown above the
+	 * form via the optional, duck-typed hook in class-settings-page.php's
+	 * render_supplier_tab(). Trusted, plugin-authored HTML. Opens by itself
+	 * until a map has been entered, then stays collapsed.
+	 *
+	 * @return string
+	 */
+	public function get_connect_helper_html() {
+		$open = $this->is_configured() ? '' : ' open';
+
+		ob_start();
+		?>
+		<details class="gco-ss-section"<?php echo $open; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- literal attribute. ?>>
+			<summary style="cursor: pointer; font-weight: 600;"><?php esc_html_e( 'How to fill in the Product Map (where to find the IDs)', 'gco-stock-sync' ); ?></summary>
+
+			<p style="margin-top: 12px;"><?php esc_html_e( 'Each line links one WooCommerce product to its product on laddsguns.com, in this format:', 'gco-stock-sync' ); ?></p>
+			<p><code>woo_sku , product_template_id , product_id</code></p>
+			<p><?php esc_html_e( 'Example: ', 'gco-stock-sync' ); ?><code>6118 , 11947 , 14206</code></p>
+
+			<ol>
+				<li>
+					<strong><?php esc_html_e( 'woo_sku', 'gco-stock-sync' ); ?></strong> —
+					<?php esc_html_e( 'the SKU of the product in your own store. Find it in WooCommerce → Products (the SKU column), or on the product\'s Inventory tab. It must match exactly.', 'gco-stock-sync' ); ?>
+				</li>
+				<li>
+					<strong><?php esc_html_e( 'product_template_id', 'gco-stock-sync' ); ?></strong> —
+					<?php esc_html_e( 'the number at the very end of the product\'s web address on laddsguns.com.', 'gco-stock-sync' ); ?>
+					<br /><code>https://www.laddsguns.com/shop/gun-safes-4/lg11947-infac-sd7-<strong>11947</strong></code>
+					<?php esc_html_e( '→ template ID is 11947.', 'gco-stock-sync' ); ?>
+				</li>
+				<li>
+					<strong><?php esc_html_e( 'product_id', 'gco-stock-sync' ); ?></strong> —
+					<?php esc_html_e( 'not shown in the address. To find it:', 'gco-stock-sync' ); ?>
+					<ol style="list-style: lower-alpha;">
+						<li><?php esc_html_e( 'Open the product page on laddsguns.com.', 'gco-stock-sync' ); ?></li>
+						<li><?php esc_html_e( 'Right-click the page and choose View Page Source (or press Ctrl+U).', 'gco-stock-sync' ); ?></li>
+						<li><?php esc_html_e( 'Press Ctrl+F and search for:', 'gco-stock-sync' ); ?> <code>name="product_id"</code></li>
+						<li><?php esc_html_e( 'The number in value="…" right next to it is the product_id (14206 for the SD7). It is usually a little higher than the template ID.', 'gco-stock-sync' ); ?></li>
+					</ol>
+				</li>
+			</ol>
+
+			<p class="description"><?php esc_html_e( 'Tips: lines starting with # are ignored, so you can leave notes. Lines that are malformed are skipped and counted rather than breaking the sync. After saving, click Test Connection — it should report one item per valid line without changing anything.', 'gco-stock-sync' ); ?></p>
+		</details>
+		<?php
+		return (string) ob_get_clean();
+	}
+
+	/**
 	 * Whether a URL is well-formed, https, and resolves under the required host.
 	 *
 	 * Restricting to https + laddsguns.com guards against a misconfigured or

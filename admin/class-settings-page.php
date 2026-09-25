@@ -611,6 +611,31 @@ class GCO_Stock_Sync_Settings_Page {
 			<form method="post" action="options.php">
 				<?php
 				settings_fields( self::get_supplier_group( $supplier_key ) );
+				$enabled_name = 'gco_stock_sync_supplier_' . $supplier_key . '[enabled]';
+				?>
+				<h2><?php esc_html_e( 'Sync Status', 'gco-stock-sync' ); ?></h2>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Enable Syncing', 'gco-stock-sync' ); ?></th>
+						<td>
+							<input type="hidden" name="<?php echo esc_attr( $enabled_name ); ?>" value="0" />
+							<label>
+								<input type="checkbox" name="<?php echo esc_attr( $enabled_name ); ?>" value="1" <?php checked( GCO_Stock_Sync_Plugin::is_supplier_enabled( $supplier_key ), true ); ?> />
+								<?php
+								echo esc_html(
+									sprintf(
+										/* translators: %s: supplier name */
+										__( 'Include %s in scheduled and manual syncs.', 'gco-stock-sync' ),
+										$supplier->get_label()
+									)
+								);
+								?>
+							</label>
+							<p class="description"><?php esc_html_e( 'Untick to pause just this supplier. Other suppliers are unaffected, and Test Connection still works while paused. The global "Enable Stock Sync" switch on the General tab must also be on.', 'gco-stock-sync' ); ?></p>
+						</td>
+					</tr>
+				</table>
+				<?php
 				do_settings_sections( self::get_supplier_page_slug( $supplier_key ) );
 				$this->render_test_connection_button( $supplier_key );
 				submit_button(
@@ -779,6 +804,10 @@ class GCO_Stock_Sync_Settings_Page {
 			$statuses      = array();
 
 			foreach ( $suppliers as $key => $supplier ) {
+				if ( ! GCO_Stock_Sync_Plugin::is_supplier_enabled( $key ) ) {
+					continue; // Switched off on its own tab.
+				}
+
 				$result = $runner->run( $key, $supplier );
 				$statuses[] = $result->status;
 				$total_updated += $result->products_updated;
