@@ -155,7 +155,9 @@ class GCO_Stock_Sync_Admin {
 						<?php echo esc_html( $tab_label ); ?>
 						<?php if ( 0 === strpos( $tab_key, 'supplier_' ) ) : ?>
 							<?php $supplier_key = substr( $tab_key, strlen( 'supplier_' ) ); ?>
-							<?php if ( isset( $suppliers[ $supplier_key ] ) && $suppliers[ $supplier_key ]->is_configured() ) : ?>
+							<?php if ( ! GCO_Stock_Sync_Plugin::is_supplier_enabled( $supplier_key ) ) : ?>
+								<span class="gco-ss-tab-dot gco-ss-tab-dot-disabled" title="<?php esc_attr_e( 'Syncing paused', 'gco-stock-sync' ); ?>"></span>
+							<?php elseif ( isset( $suppliers[ $supplier_key ] ) && $suppliers[ $supplier_key ]->is_configured() ) : ?>
 								<span class="gco-ss-tab-dot gco-ss-tab-dot-configured" title="<?php esc_attr_e( 'Configured', 'gco-stock-sync' ); ?>"></span>
 							<?php else : ?>
 								<span class="gco-ss-tab-dot gco-ss-tab-dot-unconfigured" title="<?php esc_attr_e( 'Not configured', 'gco-stock-sync' ); ?>"></span>

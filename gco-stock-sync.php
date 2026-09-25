@@ -14,7 +14,7 @@
  * Plugin Name:       GCO Supplier Stock Sync
  * Plugin URI:        https://sulimankhan.pro
  * Description:       Pulls live stock data from supplier feeds and updates WooCommerce product stock status on a schedule. Suppliers: Highland Outdoors (NetSuite), Ladds Guns (INFAC), Browning Gun Safes.
- * Version:           1.2.0
+ * Version:           1.3.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Suliman K.
@@ -32,7 +32,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Plugin constants.
  */
-define( 'GCO_STOCK_SYNC_VERSION', '1.2.0' );
+define( 'GCO_STOCK_SYNC_VERSION', '1.3.0' );
 define( 'GCO_STOCK_SYNC_FILE', __FILE__ );
 define( 'GCO_STOCK_SYNC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'GCO_STOCK_SYNC_URL', plugin_dir_url( __FILE__ ) );

@@ -77,6 +77,17 @@ class GCO_Stock_Sync_CLI {
 		}
 
 		foreach ( $suppliers as $key => $supplier ) {
+			if ( ! GCO_Stock_Sync_Plugin::is_supplier_enabled( $key ) ) {
+				WP_CLI::warning(
+					sprintf(
+						/* translators: %s: supplier label */
+						__( "Supplier '%s' is disabled in its settings tab. Skipping.", 'gco-stock-sync' ),
+						$supplier->get_label()
+					)
+				);
+				continue;
+			}
+
 			if ( ! $supplier->is_configured() ) {
 				WP_CLI::warning(
 					sprintf(

@@ -165,6 +165,27 @@ class GCO_Stock_Sync_Plugin {
 	}
 
 	/**
+	 * Whether syncing is switched on for one supplier (the per-supplier
+	 * "Enable syncing" checkbox on its settings tab). Defaults to ON when it
+	 * has never been saved, so existing installs keep syncing exactly as
+	 * before until someone deliberately turns a supplier off. This is
+	 * independent of the global "Enable Stock Sync" switch — both must be on
+	 * for a scheduled run — and does not affect Test Connection.
+	 *
+	 * @param string $supplier_key Supplier key.
+	 * @return bool
+	 */
+	public static function is_supplier_enabled( $supplier_key ) {
+		$settings = get_option( 'gco_stock_sync_supplier_' . $supplier_key, array() );
+
+		if ( ! is_array( $settings ) || ! array_key_exists( 'enabled', $settings ) ) {
+			return true;
+		}
+
+		return ! empty( $settings['enabled'] );
+	}
+
+	/**
 	 * Get all registered suppliers.
 	 *
 	 * @return GCO_Stock_Sync_Supplier_Interface[]
@@ -228,7 +249,7 @@ class GCO_Stock_Sync_Plugin {
 		$runner = new GCO_Stock_Sync_Sync_Runner();
 
 		foreach ( $this->get_suppliers() as $key => $supplier ) {
-			if ( ! $supplier->is_configured() ) {
+			if ( ! self::is_supplier_enabled( $key ) || ! $supplier->is_configured() ) {
 				continue;
 			}
 
