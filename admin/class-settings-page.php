@@ -804,8 +804,8 @@ class GCO_Stock_Sync_Settings_Page {
 			$statuses      = array();
 
 			foreach ( $suppliers as $key => $supplier ) {
-				if ( ! GCO_Stock_Sync_Plugin::is_supplier_enabled( $key ) ) {
-					continue; // Switched off on its own tab.
+				if ( ! GCO_Stock_Sync_Plugin::is_supplier_enabled( $key ) || ! $supplier->is_configured() ) {
+					continue; // Same rule as the scheduled run: paused or not set up yet.
 				}
 
 				$result = $runner->run( $key, $supplier );

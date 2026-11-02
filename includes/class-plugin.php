@@ -101,6 +101,7 @@ class GCO_Stock_Sync_Plugin {
 		require_once $path . 'suppliers/class-ladds-infac.php';
 		require_once $path . 'suppliers/class-browning-auth-session.php';
 		require_once $path . 'suppliers/class-browning.php';
+		require_once $path . 'suppliers/class-phoenix-safe.php';
 
 		require_once $path . 'sync/class-sync-result.php';
 		require_once $path . 'sync/class-product-matcher.php';
@@ -160,6 +161,9 @@ class GCO_Stock_Sync_Plugin {
 
 		$browning = new GCO_Stock_Sync_Browning();
 		$suppliers[ $browning->get_key() ] = $browning;
+
+		$phoenix = new GCO_Stock_Sync_Phoenix_Safe();
+		$suppliers[ $phoenix->get_key() ] = $phoenix;
 
 		return $suppliers;
 	}
