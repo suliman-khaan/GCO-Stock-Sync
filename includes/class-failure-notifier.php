@@ -16,12 +16,14 @@ defined( 'ABSPATH' ) || exit;
 class GCO_Stock_Sync_Failure_Notifier {
 
 	/**
-	 * Option key for consecutive failure count.
+	 * Option key for consecutive failure counts, as supplier key => count.
+	 * Tracked per supplier so one healthy supplier can't reset another's count.
 	 */
 	const OPTION_CONSECUTIVE_FAILURES = 'gco_stock_sync_consecutive_failures';
 
 	/**
-	 * Option key for timestamp of the last email alert sent.
+	 * Option key for last email alert times, as supplier key => timestamp.
+	 * Per supplier so an alert about one can't silence an alert about another.
 	 */
 	const OPTION_LAST_ALERT_TIME = 'gco_stock_sync_last_failure_alert';
 
@@ -54,7 +56,7 @@ class GCO_Stock_Sync_Failure_Notifier {
 		}
 
 		if ( 'success' === $result->status ) {
-			$this->reset_failure_count();
+			$this->reset_failure_count( $supplier_key );
 			return;
 		}
 
@@ -64,19 +66,44 @@ class GCO_Stock_Sync_Failure_Notifier {
 	}
 
 	/**
-	 * Get the current consecutive failure count.
+	 * Read a supplier-keyed option. Versions before 1.4.0 stored a single
+	 * number here, which can't be attributed to a supplier, so it reads as empty.
 	 *
-	 * @return int
+	 * @param string $option Option key.
+	 * @return array Supplier key => integer value.
 	 */
-	public function get_consecutive_failures() {
-		return absint( get_option( self::OPTION_CONSECUTIVE_FAILURES, 0 ) );
+	private function get_supplier_map( $option ) {
+		$map = get_option( $option, array() );
+
+		return is_array( $map ) ? array_map( 'absint', $map ) : array();
 	}
 
 	/**
-	 * Reset consecutive failure count to 0.
+	 * Get the current consecutive failure count.
+	 *
+	 * @param string $supplier_key Supplier key. Omit for the highest count of any supplier.
+	 * @return int
 	 */
-	public function reset_failure_count() {
-		update_option( self::OPTION_CONSECUTIVE_FAILURES, 0 );
+	public function get_consecutive_failures( $supplier_key = '' ) {
+		$counts = $this->get_supplier_map( self::OPTION_CONSECUTIVE_FAILURES );
+
+		if ( '' === $supplier_key ) {
+			return empty( $counts ) ? 0 : max( $counts );
+		}
+
+		return isset( $counts[ $supplier_key ] ) ? $counts[ $supplier_key ] : 0;
+	}
+
+	/**
+	 * Reset one supplier's consecutive failure count to 0.
+	 *
+	 * @param string $supplier_key Supplier key.
+	 */
+	public function reset_failure_count( $supplier_key ) {
+		$counts = $this->get_supplier_map( self::OPTION_CONSECUTIVE_FAILURES );
+
+		unset( $counts[ $supplier_key ] );
+		update_option( self::OPTION_CONSECUTIVE_FAILURES, $counts );
 	}
 
 	/**
@@ -87,8 +114,10 @@ class GCO_Stock_Sync_Failure_Notifier {
 	 * @return bool True if email was dispatched, false otherwise.
 	 */
 	public function record_failure_and_maybe_alert( $supplier_key, $error_msg = '' ) {
-		$failures = $this->get_consecutive_failures() + 1;
-		update_option( self::OPTION_CONSECUTIVE_FAILURES, $failures );
+		$counts                  = $this->get_supplier_map( self::OPTION_CONSECUTIVE_FAILURES );
+		$failures                = $this->get_consecutive_failures( $supplier_key ) + 1;
+		$counts[ $supplier_key ] = $failures;
+		update_option( self::OPTION_CONSECUTIVE_FAILURES, $counts );
 
 		$threshold = apply_filters( 'gco_stock_sync_failure_threshold', self::DEFAULT_FAILURE_THRESHOLD );
 		$cooldown  = apply_filters( 'gco_stock_sync_alert_interval', self::DEFAULT_ALERT_INTERVAL );
@@ -97,7 +126,8 @@ class GCO_Stock_Sync_Failure_Notifier {
 			return false;
 		}
 
-		$last_alert = absint( get_option( self::OPTION_LAST_ALERT_TIME, 0 ) );
+		$alerts     = $this->get_supplier_map( self::OPTION_LAST_ALERT_TIME );
+		$last_alert = isset( $alerts[ $supplier_key ] ) ? $alerts[ $supplier_key ] : 0;
 		$now        = time();
 
 		if ( ( $now - $last_alert ) < $cooldown ) {
@@ -105,7 +135,8 @@ class GCO_Stock_Sync_Failure_Notifier {
 			return false;
 		}
 
-		update_option( self::OPTION_LAST_ALERT_TIME, $now );
+		$alerts[ $supplier_key ] = $now;
+		update_option( self::OPTION_LAST_ALERT_TIME, $alerts );
 		return $this->send_failure_email( $supplier_key, $failures, $error_msg );
 	}
 

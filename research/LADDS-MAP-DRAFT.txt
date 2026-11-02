@@ -1,14 +1,16 @@
-# Ladds Guns (INFAC) product map — matched against guncabinetsonline.co.uk on 2026-09-25.
+# Ladds Guns (INFAC) product map — final, matched by model against the client's
+# Infac_GCO_Ladds_Product_URL_Mapping spreadsheet (and verified live on laddsguns.com).
 # Format:  woo_sku , product_template_id , product_id
 # Paste the block below into Stock Sync -> Ladds Guns (INFAC) -> Product Map.
 
-# --- Matched to a WooCommerce product (safe to paste now) ---
-6118 , 11947 , 14206   # INFAC SD7   -> "Infac Protection Series SD7 6 Plus 1 Gun Cabinet"
-6117 , 11945 , 14204   # INFAC SD5   -> "Infac Protection Series SD5 4 Plus 1 Gun Cabinet"
-6116 , 11946 , 14205   # INFAC S5    -> "Infac Protection Series S5 4 Plus 1 Gun Cabinet"
-6991 , 11952 , 14211   # INFAC PK60  -> "Infac Presidential PK60 Fireproof 21 Gun Safe - Black"  (name differs slightly: CONFIRM same product)
+# --- Confirmed matching models (safe to paste) ---
+1152 , 11953 , 14212   # PK75 -> "Presidential PK75 Fireproof 24 Gun Safe - Black"
+6991 , 11952 , 14211   # PK60 -> "Presidential PK60 Fireproof 21 Gun Safe - Black"
+6118 , 11947 , 14206   # SD7  -> "Protection Series SD7 6 Plus 1 Gun Cabinet"
+6116 , 11946 , 14205   # S5   -> "Protection Series S5 4 Plus 1 Gun Cabinet"
+6117 , 11945 , 14204   # SD5  -> "Protection Series SD5 4 Plus 1 Gun Cabinet"
 
-# --- On Ladds' list but NOT found in the WooCommerce store (no SKU to map) ---
+# --- Supplier-only: on Ladds' list but NOT listed on GCO (nothing to sync; do not map) ---
 # ED23 , 11955 , 14214
 # ED18 , 11954 , 14213
 # PT23 , 11951 , 14210
@@ -18,4 +20,4 @@
 # S1 Ammunition Safe , 10302 , 12561
 # S2 Ammunition Safe , 10301 , 12560
 #
-# In WooCommerce but NOT on Ladds' list (nothing to map): INFAC S3 (6114), INFAC PK75 (1152)
+# GCO-only (no Ladds URL supplied, nothing to map): S3 (Woo SKU 6114)
